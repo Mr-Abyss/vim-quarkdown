@@ -1,0 +1,22 @@
+.docname {Sample}
+.doctype {paged}
+
+# Main Title
+
+Some text with .sum {1} {2} inline and $ x $ math.
+
+##! Decorative
+
+.var {x} {1}
+
+```
+.notafunc {a}
+```
+
+$$$
+E = mc^2
+$$$
+
+## Sub One
+### Deep
+####! Deco deep
