@@ -218,3 +218,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+test/last-result.txt
+
+# agentic harness
+.zcode/
+.claude/
