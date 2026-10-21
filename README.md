@@ -75,8 +75,8 @@ Mappings are provided as `<Plug>(quarkdown-toc)`, `<Plug>(quarkdown-compile)`
 and `<Plug>(quarkdown-compile-sync)`; map them yourself, e.g.
 
 ```vim
-map <localleader>t <Plug>(quarkdown-toc)
-map <localleader>c <Plug>(quarkdown-compile)
+map <localleader>qt <Plug>(quarkdown-toc)
+map <localleader>qc <Plug>(quarkdown-compile)
 ```
 
 ## Tests
@@ -95,16 +95,22 @@ executable. Details land in `test/last-result.txt`.
 ### Phase 1
 
 [x] simple syntax highlighting
-[x] In-file Toc (ref. vim-markdown project)
+
+[x] In-file Toc
+
 [x] compiling
 
 ### Phase 2
 
+[] mirror most of quarkdown-VScode's features
+
 [] advanced syntax highlighting
+
 [] advanced motions
+
 [] advanced mappings (ref. vimtex project)
 
-### What Will Not Be Implemented (presumebably)
+### What Will Not Be Implemented (for now)
 
 These functionalities can be outsourced to other, more professional plugins.
 
