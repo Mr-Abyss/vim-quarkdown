@@ -2,7 +2,7 @@
 
 ## Design Philosophy
 
-For those of you who stuck with vim, but want a bit of quarkdown convenience.
+For vim users who want a bit of quarkdown convenience.
 
 ## Requirements
 
@@ -20,8 +20,6 @@ Use your favorite plugin manager, e.g. with vim-plug:
 ```vim
 Plug 'Mr-Abyss/vim-quarkdown'
 ```
-
-Or copy the repository into `~/.vim/pack/vendor/start/vim-quarkdown`.
 
 ## Usage
 
@@ -100,15 +98,19 @@ executable. Details land in `test/last-result.txt`.
 
 [x] compiling
 
-### Phase 2
+### Phase 2: Minor Advances
 
 [] mirror most of quarkdown-VScode's features
 
 [] advanced syntax highlighting
 
-[] advanced motions
+[] vimtex-style advanced motions
 
-[] advanced mappings (ref. vimtex project)
+[] vimtex-style advanced mappings
+
+### Phase 3: Major Revisions
+
+[] advanced previewing (akin to many vim-markdown plugins, sadly many of them seem under-maintained)
 
 ### What Will Not Be Implemented (for now)
 
@@ -127,3 +129,9 @@ These functionalities can be outsourced to other, more professional plugins.
 [x] Tag navigation
 
  * [vim-gutentags](https://github.com/ludovicchabant/vim-gutentags)
+
+## Acknowledgements
+
+[vim-markdown](https://github.com/preservim/vim-markdown) and [vimtex](https://github.com/lervag/vimtex) for inspiration of what features are welcome.
+[quarkdown](https://github.com/iamgio/quarkdown) itself, of course! And the official [LSP](https://github.com/iamgio/quarkdown/tree/main/quarkdown-lsp).
+
