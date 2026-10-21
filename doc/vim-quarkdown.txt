@@ -1,0 +1,323 @@
+*vim-quarkdown.txt*	For Vim version 9.0 and later	Last change: 2026 Oct 21
+
+Vim-quarkdown: unofficial support for the Quarkdown (.qd) typesetting
+language — highlighting, TOC, compiling, preview, completion, popup docs
+and language-server integration, in pure vim9script.
+
+1. Overview ................ |quarkdown-overview|
+2. Requirements ............ |quarkdown-requirements|
+3. Commands ................ |quarkdown-commands|
+4. Mappings ................ |quarkdown-mappings|
+5. Completion .............. |quarkdown-completion|
+6. LSP integration ......... |quarkdown-lsp|
+7. Options ................. |quarkdown-options|
+8. Syntax highlighting ..... |quarkdown-syntax|
+9. Windows notes ........... |quarkdown-windows|
+10. Bundled catalogue ...... |quarkdown-data|
+11. Known limitations ...... |quarkdown-limitations|
+
+==============================================================================
+1. Overview					*vim-quarkdown* *quarkdown-overview*
+
+Vim-quarkdown mirrors, as far as Vim allows, the feature set of the
+official VS Code extension for Quarkdown (https://quarkdown.com):
+
+- Syntax highlighting layered on Vim's Markdown syntax
+  (|quarkdown-syntax|)
+- An in-file table of contents (|:QuarkdownToc|)
+- Compiling to HTML/PDF with the quarkdown CLI (|:QuarkdownCompile|)
+- Browser live preview (|:QuarkdownPreview|)
+- Completion of function and parameter names, with or without an LSP
+  client installed (|quarkdown-completion|)
+- Popup documentation for stdlib functions (|:QuarkdownDoc|)
+- Diagnostics/hover/rich completion via the quarkdown language server,
+  registered automatically with coc, ale or vim-lsp (|quarkdown-lsp|)
+
+Everything is implemented in pure vim9script: no Python, no Neovim.
+The quarkdown CLI is only needed for compilation, the language server
+and data regeneration — highlighting, the TOC, offline completion and
+:QuarkdownDoc work without it.
+
+==============================================================================
+2. Requirements					*quarkdown-requirements*
+
+- Vim 9.0 or later, compiled with |+channel| (jobs/channels are used
+  for compilation and the language server).
+- The quarkdown CLI (https://quarkdown.com) on $PATH, or its full path
+  in |g:quarkdown_compiler|.
+- The language server needs quarkdown v1.9.0 or later (v2.x
+  recommended); it ships inside the CLI as `quarkdown language-server`.
+
+No LSP client is presupposed. When none of coc / ale / vim-lsp is
+installed, the plugin falls back to bundled-data completion
+(|quarkdown-completion|) and |:QuarkdownDoc|.
+
+==============================================================================
+3. Commands					*quarkdown-commands*
+
+All commands are buffer-local and available in quarkdown buffers.
+
+						*:QuarkdownToc*
+:QuarkdownToc
+	Open a vertical location-list window with every heading of the
+	current buffer, indented by level; `~ ` marks decorative headings
+	(`#!`, `##!`, ...). Press |<CR>| on an entry to jump to it, `q` to
+	close the window.
+
+						*:QuarkdownCompile*
+:QuarkdownCompile[!] [args]
+	Compile the current buffer with `quarkdown c <file>` (the buffer
+	is saved first if modified). Without `!` the compile runs as a
+	background job; with `!` it blocks until done.
+	Any [args] are passed through to the CLI, e.g.: >
+	    :QuarkdownCompile --pdf
+	    :QuarkdownCompile -o build
+<	The output lands beside the document, in
+	`quarkdown-output/<document-name>/index.html`, regardless of
+	vim's working directory. On success the output path is echoed; on
+	failure the error output (with Java stack-trace lines filtered
+	out) is placed in the |quickfix| list and the quickfix window is
+	opened. See |g:quarkdown_compile_strict| and
+	|g:quarkdown_compile_timeout| for the flags that are added
+	automatically.
+
+						*:QuarkdownOpen*
+:QuarkdownOpen
+	Open the last successfully compiled document (index.html) in the
+	default browser.
+
+						*:QuarkdownPreview*
+:QuarkdownPreview [args]
+	Compile and start the CLI's preview webserver (`-p`). Useful
+	pass-through args: >
+	    :QuarkdownPreview -w            " recompile on every change
+	    :QuarkdownPreview --server-port 9090
+<	The CLI opens the document in a browser tab; the server dies with
+	the vim session, or run |:QuarkdownStop| to stop it early (on
+	Windows the whole process tree is terminated, so no JVM is
+	orphaned).
+
+						*:QuarkdownStop*
+:QuarkdownStop
+	Kill a running compile job and/or preview server. Safe to call
+	when neither is running.
+
+						*:QuarkdownDoc*
+:QuarkdownDoc [name]
+	Show documentation for a stdlib function in a popup, from the
+	bundled catalogue (|quarkdown-data|); works fully offline.
+	Without [name] the word under the cursor is used (leading `.` and
+	trailing `:`/`{`/`}` are stripped, so it works right on a call).
+	Scroll with `j`/`k`/`d`/`u` or the mouse wheel, close with `q`,
+	|<Esc>|, |<CR>|, |<Space>| or a click. For live hover over
+	user-defined functions use your LSP client's hover instead
+	(|quarkdown-lsp|).
+
+==============================================================================
+4. Mappings					*quarkdown-mappings*
+
+These <Plug> mappings are defined globally; no keys are mapped by
+default. Map them yourself, e.g.: >
+    map <localleader>qt <Plug>(quarkdown-toc)
+    map <localleader>qc <Plug>(quarkdown-compile)
+    map <localleader>qC <Plug>(quarkdown-compile-sync)
+    map <localleader>qo <Plug>(quarkdown-open)
+    map <localleader>qp <Plug>(quarkdown-preview)
+    map <localleader>qd <Plug>(quarkdown-doc)
+<
+Available mappings:
+
+						*<Plug>(quarkdown-toc)*
+	<Plug>(quarkdown-toc)		open the TOC
+						*<Plug>(quarkdown-compile)*
+	<Plug>(quarkdown-compile)	async compile
+						*<Plug>(quarkdown-compile-sync)*
+	<Plug>(quarkdown-compile-sync)	synchronous compile
+						*<Plug>(quarkdown-open)*
+	<Plug>(quarkdown-open)		open last output in the browser
+						*<Plug>(quarkdown-preview)*
+	<Plug>(quarkdown-preview)	start the preview server
+						*<Plug>(quarkdown-doc)*
+	<Plug>(quarkdown-doc)		docs for the word under the cursor
+
+The insert-mode mappings installed for the offline auto-popup (only
+without an LSP client, see |quarkdown-completion|) are buffer-local
+and can be overridden; set |g:quarkdown_complete_auto| to 0 to remove
+them entirely.
+
+==============================================================================
+5. Completion					*quarkdown-completion*
+
+What you get depends on whether an LSP client is attached.
+
+WITH a client (coc, ale or vim-lsp; see |quarkdown-lsp|):
+	Completions come from the live language server: stdlib *and*
+	user-defined function names, parameter names, and type-aware
+	parameter values (e.g. inside `.row {…}` it suggests the valid
+	`alignment` values). For ale and vim-lsp, 'omnifunc' is pointed
+	at the client, so trigger it with |i_CTRL-X_CTRL-O|; coc drives
+	its own popup on the server's trigger characters (`.` `:` `{`).
+
+WITHOUT any client:
+	An offline omnifunc built from the bundled catalogue
+	(|quarkdown-data|) completes:
+	- function names after `.` or a `::` chain (the dot must start a
+	  call: `end.` in prose does not trigger),
+	- parameter names inside a known function's argument braces;
+	  named parameters already supplied earlier in the call are
+	  skipped.
+	Trigger it with |i_CTRL-X_CTRL-O|. On top, a popup opens
+	automatically right after `.` or `{` before a call
+	(|g:quarkdown_complete_auto|); it never fires inside fenced code,
+	inline code or math. When a client is active the auto-popup is
+	not installed at all, so nothing doubles up.
+
+Offline limitations (use an LSP client for these): enum *value*
+completion, user-defined functions, and catalogue freshness — rerun
+the generator after upgrading quarkdown (|quarkdown-data|).
+
+==============================================================================
+6. LSP integration				*quarkdown-lsp*
+
+Diagnostics, hover and rich completion are provided by quarkdown's
+language server, launched as `quarkdown language-server` over stdio
+(quarkdown v1.9.0+). The plugin registers this server with whichever
+supported client it finds on your runtimepath; you configure nothing:
+
+coc	An entry is injected into g:coc_user_config at startup via
+	coc#config() — session-only, never written to
+	coc-settings.json. A plain `let g:coc_user_config = {...}`
+	later in your vimrc replaces that dict and wipes the entry;
+	the plugin re-injects it (restarting coc, if already running)
+	the next time a .qd file is opened, so no vimrc changes are
+	required. Alternatively install the coc-quarkdown extension —
+	but then exclude 'coc' via |g:quarkdown_lsp_clients| so the
+	server is not registered twice.
+
+ale	An LSP linter is defined via ale#linter#Define(): diagnostics
+	in the loclist, :ALEHover, completion through
+	'omnifunc' = ale#completion#OmniFunc.
+
+vim-lsp	The server is registered via lsp#register_server(): :LspHover,
+	completion through 'omnifunc' = lsp#complete. On native Windows
+	the launch list is wrapped in `cmd.exe /c` because vim-lsp hands
+	it straight to |job_start()|.
+
+Neovim's built-in Lua LSP client is out of scope (vim9script plugin).
+
+What the server diagnoses (as of quarkdown v2.6.4): invalid parameter
+*values* (against documented allowed values), *unresolved* parameter
+names and *duplicate* parameter names. It does NOT diagnose unknown
+function names, wrong argument counts or unbalanced braces — a full
+|:QuarkdownCompile| (which runs --strict and fills the quickfix on
+failure) remains the authoritative check. Diagnostics are published
+only after the first change to the buffer (the server ignores the
+initial open), so a freshly opened file shows none.
+
+Server-side semantic tokens (function-call highlighting) exist but are
+consumed by none of ale/vim-lsp; coc users can enable them via the
+`semanticTokens.filetypes` setting in :CocConfig, including
+"quarkdown".
+
+==============================================================================
+7. Options					*quarkdown-options*
+
+						*g:quarkdown_compiler*
+g:quarkdown_compiler	(default 'quarkdown')
+	Compiler command or full path. Also names the binary used to
+	launch the language server. On native Windows, if `quarkdown` is
+	not on $PATH, set the full path of the quarkdown.cmd wrapper.
+
+						*g:quarkdown_compile_opts*
+g:quarkdown_compile_opts	(default [])
+	Extra arguments appended to every compilation (compile and
+	preview alike).
+
+						*g:quarkdown_compile_strict*
+g:quarkdown_compile_strict	(default 1)
+	Pass --strict so errors surface in the quickfix.
+
+						*g:quarkdown_compile_timeout*
+g:quarkdown_compile_timeout	(default 0)
+	Seconds passed as --timeout. The CLI default of 30s is too
+	short for large documents; 0 (the plugin default) passes
+	--timeout 0 to disable it; -1 omits the flag entirely and
+	restores the CLI default.
+
+						*g:quarkdown_lsp*
+g:quarkdown_lsp		(default 1)
+	Enable the language-server integration entirely. Set to 0 to
+	keep only the offline features.
+
+						*g:quarkdown_lsp_clients*
+g:quarkdown_lsp_clients	(default 'auto')
+	Which clients to register with: 'auto' picks the first
+	available of coc, ale, vim-lsp (one server is enough); or a
+	list like ['ale', 'vim-lsp'] to force specific clients — every
+	listed and installed client gets the server registered.
+
+						*g:quarkdown_complete_auto*
+g:quarkdown_complete_auto	(default 1)
+	Offline auto-popup after `.` / `{` (installed only when no LSP
+	client is active).
+
+==============================================================================
+8. Syntax highlighting				*quarkdown-syntax*
+
+Vim's runtime Markdown syntax is loaded first, then Quarkdown
+constructs are layered on top:
+
+- Function/variable calls `.name` and chained calls `::`
+- Call arguments `{…}` with proper nesting, named arguments
+  `name:{…}`, numbers inside arguments
+- Decorative headings `#!`, `##!`, ...
+- Math blocks `$$$ … $$$` and inline `$ … $`
+- Line-continuation backslashes at end of line
+
+Function syntax is intentionally NOT highlighted inside fenced code,
+inline code and math. New highlight groups defined: qdFuncName,
+qdChain, qdBraceDelim, qdNamedArg, qdNumber, qdMathDelim, qdMathBlock,
+qdMathInline, qdDecoHeading, qdLineCont — link them to your taste: >
+    hi link qdFuncName Function
+<
+
+==============================================================================
+9. Windows notes				*quarkdown-windows*
+
+On Windows quarkdown ships only .cmd/.bat/sh wrapper scripts (no
+.exe), which vim's async |job_start()| cannot execute directly. The
+plugin routes commands through `cmd.exe /c` automatically on native
+Windows Vim and executes the sh wrapper directly on MSYS/Git-Bash Vim
+— both are tested. The same wrapping is applied to the language
+server for ale (shell command), vim-lsp (job list) and coc (node
+spawn). Killing a compile job or the preview server takes down the
+whole process tree so no JVM is orphaned.
+
+==============================================================================
+10. Bundled stdlib catalogue			*quarkdown-data*
+
+data/stdlib.json — the data source for offline completion
+(|quarkdown-completion|) and |:QuarkdownDoc| — is generated, not
+written by hand: >
+    node scripts/gen-stdlib-data.js
+<
+The script starts `quarkdown language-server`, asks it for every
+stdlib function (name, module, signature, parameters, documentation)
+and writes the JSON file; it needs quarkdown v1.9.0+ on $PATH and
+Node.js. Re-run it after upgrading quarkdown to pick up new or
+changed functions. The plugin reads the file lazily and caches it.
+
+==============================================================================
+11. Known limitations				*quarkdown-limitations*
+
+- The language server does not flag unknown functions, wrong argument
+  counts or unbalanced braces (see |quarkdown-lsp|); compile for the
+  authoritative check.
+- Diagnostics appear only after the first buffer change.
+- Semantic-token highlighting is not consumed from ale/vim-lsp.
+- Offline completion has no enum values and knows nothing about
+  user-defined functions.
+- The language server is young: concurrent requests can return empty
+  results; the plugin always talks to it sequentially.
+
+ vim:tw=78:ts=8:noet:ft=help:norl:

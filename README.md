@@ -29,6 +29,10 @@ Plug 'Mr-Abyss/vim-quarkdown'
 
 Open any `*.qd` file. The filetype `quarkdown` is detected automatically.
 
+The full manual lives inside Vim: `:h vim-quarkdown` (after a manual
+install, run `:helptags ALL` once if the tag is not found; plugin
+managers generate it automatically).
+
 ### Syntax highlighting
 
 Markdown highlighting (from Vim's runtime) plus Quarkdown constructs:
