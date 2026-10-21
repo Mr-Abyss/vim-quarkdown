@@ -15,3 +15,10 @@ nnoremap <silent> <Plug>(quarkdown-compile) :<C-u>call quarkdown#Compile(false, 
 nnoremap <silent> <Plug>(quarkdown-compile-sync) :<C-u>call quarkdown#Compile(true, [])<CR>
 nnoremap <silent> <Plug>(quarkdown-open) :<C-u>call quarkdown#Open()<CR>
 nnoremap <silent> <Plug>(quarkdown-preview) :<C-u>call quarkdown#Preview([])<CR>
+nnoremap <silent> <Plug>(quarkdown-doc) :<C-u>call quarkdown#doc#Show('')<CR>
+
+# Register the quarkdown language server with any installed LSP client
+# (coc / ale / vim-lsp; see :h quarkdown-lsp). This early call matters for
+# coc: its server config must land in g:coc_user_config before the coc
+# service starts reading it.
+quarkdown#lsp#Setup()

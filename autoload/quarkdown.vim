@@ -47,7 +47,9 @@ enddef
 # 9.1.785), which would wrap msys argv in cmd.exe and hang the job.
 # Also: keep the wrapper as plain `/c` — a `/c /d` prefix makes cmd.exe
 # treat `/d` as the command to run and fail instantly.
-def SpawnCmd(cmd: list<string>): list<string>
+# Exported for quarkdown/lsp.vim, which must spawn the language server the
+# same way (vim-lsp hands the list straight to job_start()).
+export def SpawnCmd(cmd: list<string>): list<string>
   if !has('unix')
     return ['cmd.exe', '/c'] + cmd
   endif
@@ -92,7 +94,8 @@ enddef
 
 # Kill a job and (on Windows, native or msys) its whole process tree;
 # killing the wrapper (cmd.exe / sh script) alone would orphan the JVM.
-def KillJob(j: job)
+# Exported for the LSP smoke test in test/run.vim.
+export def KillJob(j: job)
   var pid = job_info(j).process
   if executable('taskkill') && pid > 0
     if has('unix')

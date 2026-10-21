@@ -12,6 +12,10 @@ For vim users who want a bit of quarkdown convenience.
   compilation; syntax highlighting and the TOC work without it). On native
   Windows, if `quarkdown` is not found, set the full path in
   `g:quarkdown_compiler`.
+- For completion, documentation and diagnostics: quarkdown **v1.9.0+**
+  (v2.x recommended), which ships the language server
+  (`quarkdown language-server`). No LSP client is presupposed — see
+  [LSP integration](#lsp-integration-ale-vim-lsp-coc).
 
 ## Installation
 
@@ -90,14 +94,80 @@ server dies with the vim session, or run `:QuarkdownStop` to stop it early
 (on Windows the whole process tree is terminated, so no JVM is orphaned).
 
 Mappings are provided as `<Plug>(quarkdown-toc)`, `<Plug>(quarkdown-compile)`,
-`<Plug>(quarkdown-compile-sync)`, `<Plug>(quarkdown-open)` and
-`<Plug>(quarkdown-preview)`; map them yourself, e.g.
+`<Plug>(quarkdown-compile-sync)`, `<Plug>(quarkdown-open)`,
+`<Plug>(quarkdown-preview)` and `<Plug>(quarkdown-doc)`; map them yourself, e.g.
 
 ```vim
 map <localleader>qt <Plug>(quarkdown-toc)
 map <localleader>qc <Plug>(quarkdown-compile)
 map <localleader>qp <Plug>(quarkdown-preview)
+map <localleader>qd <Plug>(quarkdown-doc)
 ```
+
+### Completions
+
+What you get depends on whether an LSP client is attached (see next section):
+
+- **With a client** (coc, ale or vim-lsp): completions come from the live
+  language server — stdlib *and* user-defined function names, parameter
+  names, and type-aware parameter *values* (e.g. inside `.row {…}` it
+  suggests valid `alignment` values). `&omnifunc` is pointed at the client
+  (coc drives its own popup).
+- **Without any client**: an offline omnifunc built from a bundled stdlib
+  catalogue (`data/stdlib.json`, 164 functions with signatures and docs)
+  completes function names after `.` / `::` and parameter names inside a
+  call (`C-x C-o`). Already-supplied named parameters are skipped. On top,
+  a completion popup opens automatically right after you type `.` or `{`
+  before a call (`g:quarkdown_complete_auto = 0` disables it; it is never
+  installed when an LSP client is active).
+
+Offline limitations (use an LSP client for these): enum *value* completion,
+completions for user-defined functions, `data/stdlib.json` must be
+regenerated with `scripts/gen-stdlib-data.js` when quarkdown adds functions.
+
+### Documentation
+
+```
+:QuarkdownDoc             " docs for the function name under the cursor
+:QuarkdownDoc container   " docs for a specific function
+```
+
+Opens a scrollable popup (`j`/`k`/`d`/`u`, `q` to close) with the
+signature, parameters and rendered documentation from the bundled catalogue
+— works fully offline. For live hover over *user-defined* functions, use
+your LSP client's own hover (coc: `K`, ale: `:ALEHover`, vim-lsp:
+`:LspHover`).
+
+### LSP integration (ale, vim-lsp, coc)
+
+Diagnostics — and the richer completions/hover described above — are
+provided by quarkdown's language server (`quarkdown language-server`).
+This plugin registers that server with whichever supported client it finds
+on your runtimepath, so you do not configure anything:
+
+| Client  | How it is wired up                                                        |
+|---------|---------------------------------------------------------------------------|
+| coc     | A `languageserver.quarkdown` entry is injected into `g:coc_user_config` at startup (session-only, never written to `coc-settings.json`). Alternatively install the [coc-quarkdown](https://github.com/bladeacer/coc-quarkdown) extension and set `g:quarkdown_lsp_clients` to exclude `'coc'`. |
+| ale     | An LSP linter is defined via `ale#linter#Define` (diagnostics in the loclist, `:ALEHover`, completion via `ale#completion#OmniFunc`). |
+| vim-lsp | The server is registered via `lsp#register_server` (`:LspHover`, completion via `lsp#complete`). |
+
+What the server diagnoses (as of quarkdown v2.6.4): invalid parameter
+*values* (against the documented allowed values), *unresolved* parameter
+names, and *duplicate* parameter names in one call. It does **not**
+diagnose unknown function names, wrong argument counts or unbalanced
+braces — a full `:QuarkdownCompile` (which runs `--strict` and fills the
+quickfix on failure) remains the authoritative check.
+
+Options:
+
+| Variable                     | Default        | Meaning                                              |
+|------------------------------|----------------|------------------------------------------------------|
+| `g:quarkdown_lsp`            | `1`            | Enable the LSP integration entirely                  |
+| `g:quarkdown_lsp_clients`    | `'auto'`       | Which clients to register: `'auto'` picks the first available of coc, ale, vim-lsp; or a list like `['ale', 'vim-lsp']` to force specific ones (all listed are registered) |
+| `g:quarkdown_complete_auto`  | `1`            | Offline auto-popup after `.` / `{` (no client only)  |
+
+`g:quarkdown_compiler` is shared with compilation and also names the
+language-server binary.
 
 ### Windows notes
 
@@ -114,8 +184,23 @@ From the repository root:
 vim -es -Nu NONE -U NONE --not-a-term -S test/run.vim; echo "exit=$?"
 ```
 
-Compilation tests are skipped automatically when the `quarkdown` CLI is not
-executable. Details land in `test/last-result.txt`.
+Compilation and LSP tests are skipped automatically when the `quarkdown`
+CLI is not executable. The LSP suite speaks real LSP to
+`quarkdown language-server` over a vim channel (framing via vim's `lsp`
+channel mode) and checks capabilities plus diagnostics; client registration
+is tested against fake ale / vim-lsp / coc autoload stubs under
+`test/fake-rtp/`. Details land in `test/last-result.txt`.
+
+## Regenerating the stdlib catalogue
+
+`data/stdlib.json` (used by offline completion and `:QuarkdownDoc`) is
+generated by querying the language server, not by hand:
+
+```sh
+node scripts/gen-stdlib-data.js      # requires quarkdown >= 1.9.0 on PATH
+```
+
+Re-run it after upgrading quarkdown to pick up new/changed stdlib functions.
 
 ## Roadmap
 
@@ -129,7 +214,8 @@ executable. Details land in `test/last-result.txt`.
 
 ### Phase 2: Minor Advances
 
-[] mirror most of quarkdown-VScode's features
+[x] mirror most of quarkdown-VScode's features (completions, documentation,
+    diagnostics, PDF export; browser-based preview via `:QuarkdownPreview`)
 
 [] advanced syntax highlighting
 
@@ -145,10 +231,29 @@ executable. Details land in `test/last-result.txt`.
 
 These functionalities can be outsourced to other, more professional plugins.
 
-[x] linting and syntax checking
- * [ale](https://github.com/w0rp/ale)
- * [neomake](https://github.com/neomake/neomake)
- * [syntastic](https://github.com/vim-syntastic/syntastic)
+[x] LSP-client plumbing for linting and syntax checking — done, and it has
+    to live here: **none of the generic clients supports quarkdown out of
+    the box** (ale ships no quarkdown linter; neomake and syntastic are not
+    LSP clients at all and no quarkdown checker exists for them). The
+    plugin therefore registers `quarkdown language-server` itself with:
+
+ * [ale](https://github.com/dense-analysis/ale) (LSP linter)
+ * [vim-lsp](https://github.com/prabirshrestha/vim-lsp) (server registration)
+ * [coc](https://github.com/neoclide/coc.nvim) (languageserver config; or
+   the [coc-quarkdown](https://github.com/bladeacer/coc-quarkdown) extension)
+
+ neomake/syntastic are deliberately not supported — they cannot consume an
+ LSP server, so real-time quarkdown diagnostics are impossible through
+ them. Use `:QuarkdownCompile` for on-demand whole-document checking.
+
+[] In-editor rendered live preview (VS Code shows rendered output next to
+    the text). Vim is pure text; the closest available today is
+    `:QuarkdownPreview -w`, which recompiles on change in a browser tab.
+
+[] Semantic-token based highlighting of function calls (the server provides
+    semantic tokens; none of ale/vim-lsp consumes them, and coc users can
+    get them via coc-quarkdown). The regex syntax in this plugin covers the
+    common cases.
 
 [x] Snippets and templates
 
@@ -162,5 +267,6 @@ These functionalities can be outsourced to other, more professional plugins.
 ## Acknowledgements
 
 [vim-markdown](https://github.com/preservim/vim-markdown) and [vimtex](https://github.com/lervag/vimtex) for inspiration of what features are welcome.
-[quarkdown](https://github.com/iamgio/quarkdown) itself, of course! And the official [LSP](https://github.com/iamgio/quarkdown/tree/main/quarkdown-lsp).
+
+[Quarkdown](https://github.com/iamgio/quarkdown) itself, of course! And the official [LSP](https://github.com/iamgio/quarkdown/tree/main/quarkdown-lsp).
 
