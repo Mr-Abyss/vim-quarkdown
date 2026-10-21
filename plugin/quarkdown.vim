@@ -13,3 +13,5 @@ g:loaded_quarkdown = 1
 nnoremap <silent> <Plug>(quarkdown-toc) :<C-u>call quarkdown#Toc()<CR>
 nnoremap <silent> <Plug>(quarkdown-compile) :<C-u>call quarkdown#Compile(false, [])<CR>
 nnoremap <silent> <Plug>(quarkdown-compile-sync) :<C-u>call quarkdown#Compile(true, [])<CR>
+nnoremap <silent> <Plug>(quarkdown-open) :<C-u>call quarkdown#Open()<CR>
+nnoremap <silent> <Plug>(quarkdown-preview) :<C-u>call quarkdown#Preview([])<CR>

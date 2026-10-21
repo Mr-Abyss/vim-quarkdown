@@ -114,6 +114,63 @@ if executable('quarkdown')
   endwhile
   Check(!quarkdown#Running(), 'async job finished')
   Check(quarkdown#LastResult().ok, $'async compile succeeds (exit {quarkdown#LastResult().code})')
+
+  # --- 6b. command assembly (BuildCmd) -----------------------------------
+  var bc = quarkdown#BuildCmd('x.qd', ['-o', 'b'])
+  Check(index(bc, '--strict') >= 0, '--strict default on')
+  var ti = index(bc, '--timeout')
+  Check(ti >= 0 && bc[ti + 1] ==# '0', '--timeout 0 default (30s CLI default disabled)')
+  Check(index(bc, '-o') >= 0, 'extra args appended')
+  g:quarkdown_compile_timeout = 120
+  bc = quarkdown#BuildCmd('x.qd', [])
+  ti = index(bc, '--timeout')
+  Check(ti >= 0 && bc[ti + 1] ==# '120', 'g:quarkdown_compile_timeout respected')
+  g:quarkdown_compile_timeout = -1
+  Check(index(quarkdown#BuildCmd('x.qd', []), '--timeout') < 0, 'timeout -1 omits flag')
+  g:quarkdown_compile_timeout = 0
+  g:quarkdown_compile_strict = 0
+  Check(index(quarkdown#BuildCmd('x.qd', []), '--strict') < 0, 'strict can be disabled')
+  g:quarkdown_compile_strict = 1
+
+  # --- 6c. sync output lands beside the file, not beside vim's cwd -------
+  mkdir(tmp .. '/deep', 'p')
+  writefile(['.docname {Deep}', '', '# Deep doc', ''], tmp .. '/deep/good.qd')
+  var repoDir = getcwd()
+  chdir(tmp)
+  execute 'edit' fnameescape(tmp .. '/deep/good.qd')
+  var deep = quarkdown#Compile(true, [])
+  Check(deep.ok, $'sync compile from foreign cwd ok (exit {deep.code})')
+  Check(isdirectory(tmp .. '/deep/quarkdown-output'), 'output beside the file')
+  Check(!isdirectory(tmp .. '/quarkdown-output'), 'no output in vim cwd')
+  Check(quarkdown#LastOut() !=# '' && isdirectory(quarkdown#LastOut()),
+        $'Success@ path parsed (got {quarkdown#LastOut()})')
+  Check(filereadable(quarkdown#LastOut() .. '/index.html'), 'index.html exists in output')
+  chdir(repoDir)
+
+  # --- 6d. Stop() is a safe no-op when idle ------------------------------
+  quarkdown#Stop()
+
+  # --- 6e. preview server lifecycle ---------------------------------------
+  execute 'edit' fnameescape(tmp .. '/good.qd')
+  var pv = quarkdown#Preview(['-b', 'none', '--server-port', '19876'])
+  Check(pv.ok && get(pv, 'started', false), 'preview job started')
+  var code = '000'
+  waited = 0
+  while waited < 250
+    code = system('curl -s -m 2 -o /dev/null -w "%{http_code}" http://127.0.0.1:19876')
+    if code =~ '^[1-5]'
+      break
+    endif
+    sleep 100m
+    waited += 1
+  endwhile
+  Check(code =~ '^[1-5]', $'preview server responds (http {code})')
+  Check(quarkdown#PreviewRunning(), 'PreviewRunning() true')
+  quarkdown#Stop()
+  sleep 1000m
+  var after = system('curl -s -m 2 -o /dev/null -w "%{http_code}" http://127.0.0.1:19876')
+  Check(after ==# '000', $'preview server stopped cleanly, no orphan (http {after})')
+  Check(!quarkdown#PreviewRunning(), 'PreviewRunning() false after stop')
 else
   echo 'SKIP: quarkdown compiler not executable'
 endif

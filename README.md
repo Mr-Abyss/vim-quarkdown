@@ -57,9 +57,16 @@ jump to it, `q` to close.
 ```
 
 Compiles the current buffer with `quarkdown c <file> --strict` (the buffer is
-saved first if modified). On success a short message is shown; on failure the
-error output (with Java stack traces filtered out) is placed in the quickfix
-list and the quickfix window is opened.
+saved first if modified). The output always lands beside the document, in
+`quarkdown-output/<document-name>/index.html`, regardless of vim's working
+directory. On success the output path is echoed; on failure the error output
+(with Java stack traces filtered out) is placed in the quickfix list and the
+quickfix window is opened.
+
+```
+:QuarkdownOpen             " open the last compiled document in your browser
+:QuarkdownStop             " kill a running compile job and/or preview server
+```
 
 Options:
 
@@ -68,14 +75,36 @@ Options:
 | `g:quarkdown_compiler`       | `'quarkdown'`  | Compiler command or full path                        |
 | `g:quarkdown_compile_opts`   | `[]`           | Extra arguments appended to every compilation        |
 | `g:quarkdown_compile_strict` | `1`            | Pass `--strict` so errors surface in the quickfix    |
+| `g:quarkdown_compile_timeout`| `0` (disabled) | Seconds passed as `--timeout`; the CLI default of 30s is too short for large documents. `-1` omits the flag |
 
-Mappings are provided as `<Plug>(quarkdown-toc)`, `<Plug>(quarkdown-compile)`
-and `<Plug>(quarkdown-compile-sync)`; map them yourself, e.g.
+### Live preview
+
+```
+:QuarkdownPreview           " compile + start the preview webserver (-p)
+:QuarkdownPreview -w        " ...and recompile on every change (live preview)
+:QuarkdownPreview --server-port 9090
+```
+
+The CLI starts a local webserver and opens the document in your browser; the
+server dies with the vim session, or run `:QuarkdownStop` to stop it early
+(on Windows the whole process tree is terminated, so no JVM is orphaned).
+
+Mappings are provided as `<Plug>(quarkdown-toc)`, `<Plug>(quarkdown-compile)`,
+`<Plug>(quarkdown-compile-sync)`, `<Plug>(quarkdown-open)` and
+`<Plug>(quarkdown-preview)`; map them yourself, e.g.
 
 ```vim
 map <localleader>qt <Plug>(quarkdown-toc)
 map <localleader>qc <Plug>(quarkdown-compile)
+map <localleader>qp <Plug>(quarkdown-preview)
 ```
+
+### Windows notes
+
+On Windows quarkdown ships only `.cmd`/`.bat`/sh wrapper scripts (no `.exe`),
+which vim's async `job_start()` cannot execute directly. The plugin routes
+the command through `cmd.exe /c` automatically on native Windows Vim and
+executes the sh wrapper directly on MSYS/Git-Bash Vim — both are tested.
 
 ## Tests
 

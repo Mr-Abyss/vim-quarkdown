@@ -223,3 +223,4 @@ test/last-result.txt
 # agentic harness
 .zcode/
 .claude/
+quarkdown-output/
