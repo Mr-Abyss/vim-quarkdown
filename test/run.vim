@@ -249,6 +249,20 @@ if exists('g:fake_coc_configs')
   Check(index(cargs, 'language-server') >= 0, 'coc entry launches language-server')
 endif
 
+# self-heal: a `let g:coc_user_config = {...}` in a user vimrc (sourced
+# after plug#end() ran the plugin) replaces the dict and wipes the startup
+# injection; Setup() must restore the entry without touching user keys.
+g:coc_user_config = {'python.analysis.typeCheckingMode': 'off'}
+quarkdown#lsp#Setup()
+var healed = get(get(g:coc_user_config, 'languageserver', {}), 'quarkdown', {})
+Check(type(healed) == v:t_dict && !empty(healed), 'coc entry re-injected after vimrc clobber')
+Check(g:coc_user_config['python.analysis.typeCheckingMode'] ==# 'off',
+      'user coc config keys survive re-injection')
+# second Setup() on the healed config must not re-inject (idempotent)
+var ncoc = len(g:fake_coc_configs)
+quarkdown#lsp#Setup()
+Check(len(g:fake_coc_configs) == ncoc, 'coc injection is idempotent once present')
+
 g:quarkdown_lsp_clients = ['ale', 'vim-lsp']
 quarkdown#lsp#Setup()
 Check(exists('g:fake_ale_defs') && len(g:fake_ale_defs) > 0, 'Setup registers ale linter')

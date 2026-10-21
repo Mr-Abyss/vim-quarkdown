@@ -127,7 +127,7 @@ export def Setup()
     return
   endif
   for c in ChosenClients()
-    if c ==# 'coc' && HasCoc() && !get(done, 'coc', false)
+    if c ==# 'coc' && HasCoc()
       done.coc = true
       var entry: dict<any>
       if WindowsHost()
@@ -144,12 +144,19 @@ export def Setup()
           filetypes: ['quarkdown'],
         }
       endif
-      # Merged into g:coc_user_config at startup: session-only, never
-      # written to the user's coc-settings.json.
-      coc#config('languageserver.quarkdown', entry)
-      if get(g:, 'coc_service_initialized', 0)
-        # Late registration (service already up): have it reload config.
-        silent! execute 'CocRestart'
+      # A plain `let g:coc_user_config = {...}` further down in a user
+      # vimrc (a very common pattern, sourced after plug#end() ran this
+      # plugin) replaces the whole dict and wipes the startup injection.
+      # Self-heal: re-inject whenever the entry is missing.
+      # coc#config merges into g:coc_user_config only: session-only,
+      # never written to the user's coc-settings.json.
+      var servers: any = get(get(g:, 'coc_user_config', {}), 'languageserver', {})
+      if type(servers) != v:t_dict || !has_key(servers, 'quarkdown')
+        coc#config('languageserver.quarkdown', entry)
+        if get(g:, 'coc_service_initialized', 0)
+          # Service already running: reload config so it picks the server up.
+          silent! execute 'CocRestart'
+        endif
       endif
     elseif c ==# 'ale' && HasAle() && !get(done, 'ale', false)
       done.ale = true

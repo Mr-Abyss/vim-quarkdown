@@ -158,6 +158,14 @@ diagnose unknown function names, wrong argument counts or unbalanced
 braces — a full `:QuarkdownCompile` (which runs `--strict` and fills the
 quickfix on failure) remains the authoritative check.
 
+coc note: the injected entry lives only in `g:coc_user_config` for the
+session. A plain `let g:coc_user_config = {...}` later in your vimrc
+(sourced after `plug#end()`) replaces that dict and removes the entry —
+the plugin re-injects it (restarting coc, if already running) the next
+time a `.qd` file is opened, so no vimrc changes are required. To avoid
+that one-time restart you can instead set your dict before `plug#end()`
+or write it as `let g:coc_user_config = extend(get(g:, 'coc_user_config', {}), {...})`.
+
 Options:
 
 | Variable                     | Default        | Meaning                                              |
