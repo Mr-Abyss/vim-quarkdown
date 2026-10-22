@@ -185,8 +185,36 @@ export def Toc()
     lnum: e.lnum,
     text: repeat('  ', e.level - 1) .. (e.deco ? '~ ' : '') .. e.text,
   }))
-  setloclist(0, [], ' ', {title: 'Quarkdown TOC', items: items})
+  setloclist(0, [], ' ', {
+    title: 'Quarkdown TOC',
+    items: items,
+    quickfixtextfunc: 'quarkdown#TocText',
+  })
   exe 'vertical lopen 35'
+enddef
+
+# Renderer for the TOC location list. Vim's default quickfix formatting
+# strips leading whitespace from every entry's text, which would flatten
+# the level indentation, so the window lines are composed here instead.
+export def TocText(info: dict<any>): list<string>
+  var items: list<dict<any>> =
+      getloclist(get(info, 'winid', 0),
+        {'id': get(info, 'id', 0), 'items': 1})->get('items', [])
+  var out: list<string> = []
+  for idx in range(get(info, 'start_idx', 1) - 1, get(info, 'end_idx', len(items)) - 1)
+    var it = items[idx]
+    var prefix = ''
+    var bname = bufname(get(it, 'bufnr', 0))
+    if bname !=# ''
+      prefix ..= bname .. '|'
+    endif
+    if get(it, 'lnum', 0) > 0
+      prefix ..= get(it, 'lnum', 0) .. '|'
+    endif
+    var text = get(it, 'text', '')
+    add(out, prefix ==# '' ? text : prefix .. ' ' .. text)
+  endfor
+  return out
 enddef
 
 # Compile the current buffer with the quarkdown CLI.

@@ -79,6 +79,25 @@ quarkdown#Toc()
 Check(winnr('$') == 2, $'toc window opened (windows: {winnr("$")})')
 Check(&filetype ==# 'qf', $'toc window is a qf window (got {&filetype})')
 Check(len(getloclist(0)) == 5, $'toc loclist has 5 entries (got {len(getloclist(0))})')
+# Vim's default quickfix formatting strips leading whitespace of the item
+# text, flattening the level indentation; Toc() installs a quickfixtextfunc
+# renderer. Assert on the rendered window buffer, not just the loclist data.
+var tocwinid = 0
+for tw in range(1, winnr('$'))
+  if getwinvar(tw, '&filetype') ==# 'qf'
+    tocwinid = tw
+  endif
+endfor
+Check(tocwinid > 0, 'toc qf window found')
+if tocwinid > 0
+  var toclines: list<string> = getbufline(winbufnr(tocwinid), 1, '$')
+  Check(len(toclines) == 5, $'toc window renders 5 lines (got {len(toclines)})')
+  Check(match(toclines, '|4| Main Title$') >= 0, 'level 1 rendered without indent')
+  Check(match(toclines, '|8|   ~ Decorative$') >= 0, 'level 2 deco rendered with 2-space indent')
+  Check(match(toclines, '|20|   Sub One$') >= 0, 'level 2 rendered with 2-space indent')
+  Check(match(toclines, '|21|     Deep$') >= 0, 'level 3 rendered with 4-space indent')
+  Check(match(toclines, '|22|       ~ Deco deep$') >= 0, 'level 4 deco rendered with 6-space indent')
+endif
 close
 
 # --- 6. compilation -----------------------------------------------------
