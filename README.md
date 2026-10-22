@@ -95,7 +95,7 @@ Options:
 
 The CLI starts a local webserver and opens the document in your browser; the
 server dies with the vim session, or run `:QuarkdownStop` to stop it early
-(on Windows the whole process tree is terminated, so no JVM is orphaned).
+(on Windows the listener is killed by its port, so no JVM is orphaned).
 
 Mappings are provided as `<Plug>(quarkdown-toc)`, `<Plug>(quarkdown-compile)`,
 `<Plug>(quarkdown-compile-sync)`, `<Plug>(quarkdown-open)`,
