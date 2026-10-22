@@ -151,9 +151,9 @@ on your runtimepath, so you do not configure anything:
 
 | Client  | How it is wired up                                                        |
 |---------|---------------------------------------------------------------------------|
-| coc     | A `languageserver.quarkdown` entry is injected into `g:coc_user_config` at startup (session-only, never written to `coc-settings.json`). Alternatively install the [coc-quarkdown](https://github.com/bladeacer/coc-quarkdown) extension and set `g:quarkdown_lsp_clients` to exclude `'coc'`. |
-| ale     | An LSP linter is defined via `ale#linter#Define` (diagnostics in the loclist, `:ALEHover`, completion via `ale#completion#OmniFunc`). |
-| vim-lsp | The server is registered via `lsp#register_server` (`:LspHover`, completion via `lsp#complete`). |
+| [coc.nvim](https://github.com/neoclide/coc.nvim) | A `languageserver.quarkdown` entry is injected into `g:coc_user_config` at startup (session-only, never written to `coc-settings.json`). Alternatively install the [coc-quarkdown](https://github.com/bladeacer/coc-quarkdown) extension and set `g:quarkdown_lsp_clients` to exclude `'coc'`. |
+| [ale](https://github.com/dense-analysis/ale) | An LSP linter is defined via `ale#linter#Define` (diagnostics in the loclist, `:ALEHover`, completion via `ale#completion#OmniFunc`). |
+| [vim-lsp](https://github.com/prabirshrestha/vim-lsp) | The server is registered via `lsp#register_server` (`:LspHover`, completion via `lsp#complete`). |
 
 What the server diagnoses (as of quarkdown v2.6.4): invalid parameter
 *values* (against the documented allowed values), *unresolved* parameter
@@ -246,9 +246,9 @@ Re-run it after upgrading quarkdown to pick up new/changed stdlib functions.
 
 ### What Will Not Be Implemented (for now)
 
-- [ ] In-editor rendered live preview (VS Code shows rendered output next to
-    the text). Vim is pure text; the closest available today is
-    `:QuarkdownPreview -w`, which recompiles on change in a browser tab.
+- [ ] In-editor rendered live preview. Vim is pure text; the closest 
+      available today is `:QuarkdownPreview -w`, which recompiles on
+      change in a browser tab.
 
 - [ ] Semantic-token based highlighting of function calls (the server provides
     semantic tokens; none of ale/vim-lsp consumes them, and coc users can
@@ -263,11 +263,13 @@ Re-run it after upgrading quarkdown to pick up new/changed stdlib functions.
     needs research and is not planned for now.
 
 - [x] Snippets and templates
-This is handled by a handful of more specialized plugins, including but limited to:
+
+This can be handled by a handful of more specialized plugins, including but limited to:
  * [UltiSnips](https://github.com/SirVer/ultisnips)
  * [neosnippet](https://github.com/Shougo/neosnippet.vim)
 
-[x] Tag navigation
+- [x] Tag navigation
+
 Similarly, check out
  * [vim-gutentags](https://github.com/ludovicchabant/vim-gutentags)
 
