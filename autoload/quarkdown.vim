@@ -190,6 +190,7 @@ export def Toc()
     quickfixtextfunc: 'quarkdown#TocText',
   })
   exe 'vertical lopen 35'
+  nnoremap <buffer> <silent> q :close<CR>
 enddef
 
 # Renderer for the TOC location list. Vim's default quickfix formatting

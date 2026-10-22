@@ -100,7 +100,10 @@ if tocwinid > 0
   Check(match(toclines, '|21|     Deep$') >= 0, 'level 3 rendered with 4-space indent')
   Check(match(toclines, '|22|       \~ Deco deep$') >= 0, 'level 4 deco rendered with 6-space indent')
 endif
-close
+# q must close the toc window, as both README and the help file promise
+# (feedkeys with 't' so the buffer mapping fires; :normal! bypasses mappings)
+feedkeys('q', 'xt')
+Check(winnr('$') == 1, $'q closes the toc window (windows: {winnr("$")})')
 
 # --- 6. compilation -----------------------------------------------------
 if executable('quarkdown')
