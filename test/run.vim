@@ -93,10 +93,12 @@ if tocwinid > 0
   var toclines: list<string> = getbufline(winbufnr(tocwinid), 1, '$')
   Check(len(toclines) == 5, $'toc window renders 5 lines (got {len(toclines)})')
   Check(match(toclines, '|4| Main Title$') >= 0, 'level 1 rendered without indent')
-  Check(match(toclines, '|8|   ~ Decorative$') >= 0, 'level 2 deco rendered with 2-space indent')
+  # '\~': an unescaped ~ in a magic pattern means "last :s pattern" (E33
+  # on a fresh session), not a literal tilde.
+  Check(match(toclines, '|8|   \~ Decorative$') >= 0, 'level 2 deco rendered with 2-space indent')
   Check(match(toclines, '|20|   Sub One$') >= 0, 'level 2 rendered with 2-space indent')
   Check(match(toclines, '|21|     Deep$') >= 0, 'level 3 rendered with 4-space indent')
-  Check(match(toclines, '|22|       ~ Deco deep$') >= 0, 'level 4 deco rendered with 6-space indent')
+  Check(match(toclines, '|22|       \~ Deco deep$') >= 0, 'level 4 deco rendered with 6-space indent')
 endif
 close
 
@@ -170,13 +172,16 @@ if executable('quarkdown')
   quarkdown#Stop()
 
   # --- 6e. preview server lifecycle ---------------------------------------
+  # random port: a fixed one can collide with anything already listening
+  # on the machine (Zotero grabbed 19876 one day)
+  var port = string(20000 + reltime()[1] % 20000)
   execute 'edit' fnameescape(tmp .. '/good.qd')
-  var pv = quarkdown#Preview(['-b', 'none', '--server-port', '19876'])
+  var pv = quarkdown#Preview(['-b', 'none', '--server-port', port])
   Check(pv.ok && get(pv, 'started', false), 'preview job started')
   var code = '000'
   waited = 0
   while waited < 250
-    code = system('curl -s -m 2 -o /dev/null -w "%{http_code}" http://127.0.0.1:19876')
+    code = system($'curl -s -m 2 -o /dev/null -w "%{{http_code}}" http://127.0.0.1:{port}')
     if code =~ '^[1-5]'
       break
     endif
@@ -187,7 +192,7 @@ if executable('quarkdown')
   Check(quarkdown#PreviewRunning(), 'PreviewRunning() true')
   quarkdown#Stop()
   sleep 1000m
-  var after = system('curl -s -m 2 -o /dev/null -w "%{http_code}" http://127.0.0.1:19876')
+  var after = system($'curl -s -m 2 -o /dev/null -w "%{{http_code}}" http://127.0.0.1:{port}')
   Check(after ==# '000', $'preview server stopped cleanly, no orphan (http {after})')
   Check(!quarkdown#PreviewRunning(), 'PreviewRunning() false after stop')
 else
