@@ -118,8 +118,7 @@ enddef
 
 def Finish(code: number, lines: list<string>): dict<any>
   var src_lines: list<string> = empty(lines) ? state.out : lines
-  var errs: list<string> = empty(lines) ? state.err : lines
-  errs = FilterErrors(errs)
+  var errs = FilterErrors(empty(lines) ? state.err : lines)
   state.running = false
   state.code = code
   state.lastOut = ''
@@ -285,12 +284,15 @@ def KillByPort(port: string)
   if port !~ '^\d\+$' || !executable('taskkill') || !executable('netstat')
     return
   endif
-  var out = system($'netstat -ano | grep ":{port}"')
+  # TCP rows are: proto, local, foreign, state, pid. Match only LISTENING
+  # rows whose LOCAL address ends in :port — a substring match over the
+  # whole line would also hit the foreign column and taskkill connected
+  # clients (e.g. the live-preview browser tab), and :80 would hit :8080.
   var pids: dict<number> = {}
-  for line in split(out, '\n')
-    var winpid = trim(split(line, '\s\+')[-1])
-    if winpid =~ '^\d\+$' && str2nr(winpid) > 0
-      pids[winpid] = 1
+  for line in split(substitute(system('netstat -ano'), "\r", '', 'g'), '\n')
+    var col = split(line, '\s\+')
+    if len(col) == 5 && col[3] ==# 'LISTENING' && col[1] =~ $':{port}$'
+      pids[col[4]] = 1
     endif
   endfor
   for winpid in keys(pids)
