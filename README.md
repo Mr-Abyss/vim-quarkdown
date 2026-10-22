@@ -273,6 +273,14 @@ This can be handled by a handful of more specialized plugins, including but limi
 Similarly, check out
  * [vim-gutentags](https://github.com/ludovicchabant/vim-gutentags)
 
+## License
+
+GPL-3.0-or-later — see [LICENSE](LICENSE). The bundled catalogue
+`data/stdlib.json` embeds documentation text generated from the
+[Quarkdown](https://github.com/iamgio/quarkdown) project (GPL-3.0); per
+its author, community plugins are welcome as long as they respect
+Quarkdown's GPL/AGPL licensing.
+
 ## Acknowledgements
 
 [vim-markdown](https://github.com/preservim/vim-markdown) and [vimtex](https://github.com/lervag/vimtex) for inspiration of 
