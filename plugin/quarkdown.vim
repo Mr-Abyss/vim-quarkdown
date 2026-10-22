@@ -1,7 +1,7 @@
 vim9script
 # vim-quarkdown: global setup. Commands live in ftplugin/quarkdown.vim.
 
-if exists("g:loaded_quarkdown")
+if exists('g:loaded_quarkdown')
   finish
 endif
 if !has('vim9script')

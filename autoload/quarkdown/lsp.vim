@@ -60,15 +60,6 @@ def RtpHas(relpath: string): bool
   return false
 enddef
 
-# Node processes (coc's server spawner) cannot exec .cmd wrappers either,
-# and that includes msys vim sessions where node still runs on Windows.
-def WindowsHost(): bool
-  if has('win32')
-    return true
-  endif
-  return has('win32unix')
-enddef
-
 # Which clients to register with. g:quarkdown_lsp_clients is 'auto'
 # (default; picks the first available of coc, ale, vim-lsp — one server is
 # enough) or a list like ['ale', 'vim-lsp'] to force specific clients.
@@ -129,21 +120,10 @@ export def Setup()
   for c in ChosenClients()
     if c ==# 'coc' && HasCoc()
       done.coc = true
-      var entry: dict<any>
-      if WindowsHost()
-        # node's spawn cannot run .cmd wrappers directly
-        entry = {
-          command: 'cmd.exe',
-          args: ['/c', Compiler(), 'language-server'],
-          filetypes: ['quarkdown'],
-        }
-      else
-        entry = {
-          command: Compiler(),
-          args: ['language-server'],
-          filetypes: ['quarkdown'],
-        }
-      endif
+      # node's spawn cannot run .cmd wrappers directly on Windows, so hand
+      # coc the same platform-wrapped launch list as every other spawn.
+      var cmd = SpawnList()
+      var entry = {command: cmd[0], args: cmd[1 :], filetypes: ['quarkdown']}
       # A plain `let g:coc_user_config = {...}` further down in a user
       # vimrc (a very common pattern, sourced after plug#end() ran this
       # plugin) replaces the whole dict and wipes the startup injection.

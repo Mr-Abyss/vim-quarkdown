@@ -1,7 +1,7 @@
 vim9script
 # vim-quarkdown: buffer-local settings and commands for Quarkdown files.
 
-if exists("b:did_quarkdown_ftplugin")
+if exists('b:did_quarkdown_ftplugin')
   finish
 endif
 b:did_quarkdown_ftplugin = 1

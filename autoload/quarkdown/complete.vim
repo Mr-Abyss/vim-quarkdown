@@ -49,30 +49,19 @@ enddef
 
 # Function-name items matching a prefix.
 def FuncItems(base: string): list<dict<any>>
+  var pat = base != '' ? '^' .. escape(base, '~.*[]\^$') : ''
   var items: list<dict<any>> = []
-  if base != ''
-    # base is \w-only; escape defensively anyway
-    var pat = '^' .. escape(base, '~.*[]\^$')
-    for f in quarkdown#data#Functions()
-      if f.name =~? pat
-        add(items, {
-          word: f.name,
-          menu: $'[{get(f, "module", "")}]',
-          kind: 'f',
-          info: FuncInfo(f),
-        })
-      endif
-    endfor
-  else
-    for f in quarkdown#data#Functions()
-      add(items, {
-        word: f.name,
-        menu: $'[{get(f, "module", "")}]',
-        kind: 'f',
-        info: FuncInfo(f),
-      })
-    endfor
-  endif
+  for f in quarkdown#data#Functions()
+    if pat != '' && f.name !~? pat
+      continue
+    endif
+    add(items, {
+      word: f.name,
+      menu: $'[{get(f, "module", "")}]',
+      kind: 'f',
+      info: FuncInfo(f),
+    })
+  endfor
   return items
 enddef
 
