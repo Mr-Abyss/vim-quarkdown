@@ -275,11 +275,7 @@ Similarly, check out
 
 ## License
 
-GPL-3.0-or-later — see [LICENSE](LICENSE). The bundled catalogue
-`data/stdlib.json` embeds documentation text generated from the
-[Quarkdown](https://github.com/iamgio/quarkdown) project (GPL-3.0); per
-its author, community plugins are welcome as long as they respect
-Quarkdown's GPL/AGPL licensing.
+GPL-3.0-or-later — see [LICENSE](LICENSE).
 
 ## Acknowledgements
 
