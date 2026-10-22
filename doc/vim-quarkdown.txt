@@ -94,8 +94,7 @@ All commands are buffer-local and available in quarkdown buffers.
 	    :QuarkdownPreview --server-port 9090
 <	The CLI opens the document in a browser tab; the server dies with
 	the vim session, or run |:QuarkdownStop| to stop it early (on
-	Windows the whole process tree is terminated, so no JVM is
-	orphaned).
+	Windows the listener is killed by its port, so no JVM is orphaned).
 
 						*:QuarkdownStop*
 :QuarkdownStop
@@ -319,5 +318,9 @@ changed functions. The plugin reads the file lazily and caches it.
   user-defined functions.
 - The language server is young: concurrent requests can return empty
   results; the plugin always talks to it sequentially.
+- On Windows, |:QuarkdownStop| mid-compile kills the wrapper but not
+  the JVM (the wrapper is not its parent), which finishes on its own;
+  set |g:quarkdown_compile_timeout| to bound a hung compile. The
+  preview server is killed by port and is not affected.
 
  vim:tw=78:ts=8:noet:ft=help:norl:
