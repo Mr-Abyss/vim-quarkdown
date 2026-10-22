@@ -218,79 +218,64 @@ Re-run it after upgrading quarkdown to pick up new/changed stdlib functions.
 
 ### Phase 1
 
-[x] simple syntax highlighting
+- [x] simple syntax highlighting
 
-[x] In-file Toc
+- [x] In-file Toc
 
-[x] compiling
+- [x] compiling
 
 ### Phase 2: Minor Advances
 
-[x] mirror most of quarkdown-VScode's features (completions, documentation,
+- [x] mirror most of quarkdown-VScode's features (completions, documentation,
     diagnostics, PDF export; browser-based preview via `:QuarkdownPreview`)
 
-[] heading-based folding
+- [ ] heading-based folding
 
-[] `[[`/`]]` heading motions
+- [ ] `[[`/`]]` heading motions
 
-[] function-call text objects (`if`/`af`, vimtex-style)
+- [ ] function-call text objects (`if`/`af`, vimtex-style)
 
 ### Phase 3: Major Revisions
 
-[] forward/inverse search: jump from the cursor position to the matching
+- [ ] forward/inverse search: jump from the cursor position to the matching
    spot in the browser preview, and from the preview back to the source
    (depends on what the preview page's JavaScript exposes)
 
-[] multi-file support: main-file detection, `[text](other.qd)` hops,
+- [ ] multi-file support: main-file detection, `[text](other.qd)` hops,
    word count
 
 ### What Will Not Be Implemented (for now)
 
-These functionalities can be outsourced to other, more professional plugins.
-
-[x] LSP-client plumbing for linting and syntax checking — done, and it has
-    to live here: **none of the generic clients supports quarkdown out of
-    the box** (ale ships no quarkdown linter; neomake and syntastic are not
-    LSP clients at all and no quarkdown checker exists for them). The
-    plugin therefore registers `quarkdown language-server` itself with:
-
- * [ale](https://github.com/dense-analysis/ale) (LSP linter)
- * [vim-lsp](https://github.com/prabirshrestha/vim-lsp) (server registration)
- * [coc](https://github.com/neoclide/coc.nvim) (languageserver config; or
-   the [coc-quarkdown](https://github.com/bladeacer/coc-quarkdown) extension)
-
- neomake/syntastic are deliberately not supported — they cannot consume an
- LSP server, so real-time quarkdown diagnostics are impossible through
- them. Use `:QuarkdownCompile` for on-demand whole-document checking.
-
-[] In-editor rendered live preview (VS Code shows rendered output next to
+- [ ] In-editor rendered live preview (VS Code shows rendered output next to
     the text). Vim is pure text; the closest available today is
     `:QuarkdownPreview -w`, which recompiles on change in a browser tab.
 
-[] Semantic-token based highlighting of function calls (the server provides
+- [ ] Semantic-token based highlighting of function calls (the server provides
     semantic tokens; none of ale/vim-lsp consumes them, and coc users can
     get them via coc-quarkdown). The regex syntax in this plugin covers the
     common cases.
 
-[] Advanced syntax highlighting — the regex layer covers the common cases
+- [ ] Advanced syntax highlighting — the regex layer covers the common cases
     and there is no concrete need yet (see also the semantic-token note
     above).
 
-[] Conceal of function syntax / emphasis markers — likely nice, but it
+- [ ] Conceal of function syntax / emphasis markers — likely nice, but it
     needs research and is not planned for now.
 
-[x] Snippets and templates
-
+- [x] Snippets and templates
+This is handled by a handful of more specialized plugins, including but limited to:
  * [UltiSnips](https://github.com/SirVer/ultisnips)
  * [neosnippet](https://github.com/Shougo/neosnippet.vim)
 
 [x] Tag navigation
-
+Similarly, check out
  * [vim-gutentags](https://github.com/ludovicchabant/vim-gutentags)
 
 ## Acknowledgements
 
-[vim-markdown](https://github.com/preservim/vim-markdown) and [vimtex](https://github.com/lervag/vimtex) for inspiration of what features are welcome.
+[vim-markdown](https://github.com/preservim/vim-markdown) and [vimtex](https://github.com/lervag/vimtex) for inspiration of 
+what features I should implement. Another source is the
+official [VS code extension](https://marketplace.visualstudio.com/items?itemName=quarkdown.quarkdown-vscode).
 
 [Quarkdown](https://github.com/iamgio/quarkdown) itself, of course! And the official [LSP](https://github.com/iamgio/quarkdown/tree/main/quarkdown-lsp).
 
