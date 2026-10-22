@@ -229,15 +229,20 @@ Re-run it after upgrading quarkdown to pick up new/changed stdlib functions.
 [x] mirror most of quarkdown-VScode's features (completions, documentation,
     diagnostics, PDF export; browser-based preview via `:QuarkdownPreview`)
 
-[] advanced syntax highlighting
+[] heading-based folding
 
-[] vimtex-style advanced motions
+[] `[[`/`]]` heading motions
 
-[] vimtex-style advanced mappings
+[] function-call text objects (`if`/`af`, vimtex-style)
 
 ### Phase 3: Major Revisions
 
-[] advanced previewing (akin to many vim-markdown plugins, sadly many of them seem under-maintained)
+[] forward/inverse search: jump from the cursor position to the matching
+   spot in the browser preview, and from the preview back to the source
+   (depends on what the preview page's JavaScript exposes)
+
+[] multi-file support: main-file detection, `[text](other.qd)` hops,
+   word count
 
 ### What Will Not Be Implemented (for now)
 
@@ -266,6 +271,13 @@ These functionalities can be outsourced to other, more professional plugins.
     semantic tokens; none of ale/vim-lsp consumes them, and coc users can
     get them via coc-quarkdown). The regex syntax in this plugin covers the
     common cases.
+
+[] Advanced syntax highlighting — the regex layer covers the common cases
+    and there is no concrete need yet (see also the semantic-token note
+    above).
+
+[] Conceal of function syntax / emphasis markers — likely nice, but it
+    needs research and is not planned for now.
 
 [x] Snippets and templates
 
