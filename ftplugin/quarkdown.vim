@@ -10,6 +10,13 @@ setl commentstring=<!--%s-->
 setl comments=s:<!--,m:\ \ \ \ ,e:-->
 setl matchpairs+={:}
 
+# Heading-based folding: a level-N heading opens a fold of level N; the
+# preamble above the first heading stays unfolded.
+if get(g:, 'quarkdown_folding', 1)
+  setl foldmethod=expr
+  setl foldexpr=quarkdown#FoldExpr(v:lnum)
+endif
+
 command -buffer QuarkdownToc call quarkdown#Toc()
 command -buffer -bang -nargs=* QuarkdownCompile call quarkdown#Compile(<bang>0, [<f-args>])
 command -buffer QuarkdownOpen call quarkdown#Open()

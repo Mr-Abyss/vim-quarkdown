@@ -105,6 +105,48 @@ endif
 feedkeys('q', 'xt')
 Check(winnr('$') == 1, $'q closes the toc window (windows: {winnr("$")})')
 
+# --- 5b. heading-based folding ------------------------------------------
+# sample.qd headings: 4 (#), 8 (##!), 20 (##), 21 (###), 22 (####!)
+Check(&l:foldmethod ==# 'expr', $'foldmethod is expr (got {&l:foldmethod})')
+Check(&l:foldexpr ==# 'quarkdown#FoldExpr(v:lnum)', $'foldexpr wired (got {&l:foldexpr})')
+Check(quarkdown#FoldExpr(1) ==# '=', 'preamble line inherits (no fold start)')
+Check(quarkdown#FoldExpr(4) ==# '1', 'level-1 heading folds at 1')
+Check(quarkdown#FoldExpr(8) ==# '2', 'deco level-2 heading folds at 2')
+Check(quarkdown#FoldExpr(22) ==# '4', 'deco level-4 heading folds at 4')
+Check(foldlevel(1) == 0, 'preamble is not folded')
+Check(foldlevel(6) == 1, $'body inside level-1 fold (got {foldlevel(6)})')
+Check(foldlevel(10) == 2, $'body inside level-2 fold (got {foldlevel(10)})')
+Check(foldlevel(22) == 4, $'last heading nests to level 4 (got {foldlevel(22)})')
+# fold extents via :setlocal foldlevel (zc closes the outermost fold
+# under the cursor; and adjacent closed folds merge in foldclosedend,
+# so boundaries are asserted on non-adjacent folds)
+setl foldlevel=1
+Check(foldclosed(9) == 8, 'level-2 fold starts on its heading line')
+setl foldlevel=2
+Check(foldclosed(21) == 21 && foldclosedend(21) == 22,
+      'level-3 fold spans 21..22 (nested folds)')
+setl foldlevel=0
+Check(foldclosed(6) == 4 && foldclosedend(6) == line('$'),
+      'level-1 fold spans 4..buffer end')
+normal! zR
+# a fold ends where the next same-or-higher level heading starts; in
+# sample.qd the level-2 folds are adjacent (8..19, 20..end) and merge
+# visually when closed, so check the boundary on a scratch buffer
+new
+setline(1, ['# a', 'x', '## b', 'y', '# c', 'z'])
+setf quarkdown
+setl foldlevel=1
+Check(foldclosed(4) == 3 && foldclosedend(4) == 4,
+      'level-2 fold ends before the next level-1 heading')
+bwipe!
+# g:quarkdown_folding = 0 leaves foldmethod alone
+g:quarkdown_folding = 0
+new
+setf quarkdown
+Check(&l:foldmethod !=# 'expr', 'folding can be disabled')
+bwipe!
+unlet! g:quarkdown_folding
+
 # --- 6. compilation -----------------------------------------------------
 if executable('quarkdown')
   var tmp = $'{tempname()}-qdtest'
@@ -432,6 +474,7 @@ Check(htags =~ "vim-quarkdown\t", ':h vim-quarkdown tag exists')
 Check(htags =~ ":QuarkdownCompile\t", ':h :QuarkdownCompile tag exists')
 Check(htags =~ ":QuarkdownDoc\t", ':h :QuarkdownDoc tag exists')
 Check(htags =~ 'g:quarkdown_lsp\t', ':h g:quarkdown_lsp tag exists')
+Check(htags =~ 'g:quarkdown_folding\t', ':h g:quarkdown_folding tag exists')
 Check(htags =~ '<Plug>(quarkdown-doc)\t', ':h <Plug>(quarkdown-doc) tag exists')
 var helpok = true
 try

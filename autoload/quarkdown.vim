@@ -171,6 +171,15 @@ export def CollectHeadings(buf: number): list<dict<any>>
   return result
 enddef
 
+# 'foldexpr' for quarkdown buffers: a level-N heading starts a fold of
+# level N; every other line inherits the level of the line above ('=').
+# Same heading rule as CollectHeadings (deco headings fold too;
+# '#hashtag' and 7-plus hashes are prose).
+export def FoldExpr(lnum: number): string
+  var hashes = matchstr(getline(lnum), '^\s*\zs#\{1,6}\ze!\?\s')
+  return hashes ==# '' ? '=' : string(strlen(hashes))
+enddef
+
 # Open a vertical location-list window with the headings of the current
 # buffer. Press <CR> on an entry to jump to it.
 export def Toc()

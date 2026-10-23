@@ -1,4 +1,4 @@
-*vim-quarkdown.txt*	For Vim version 9.0 and later	Last change: 2026 Oct 21
+*vim-quarkdown.txt*	For Vim version 9.0 and later	Last change: 2026 Oct 23
 
 Vim-quarkdown: unofficial support for the Quarkdown (.qd) typesetting
 language — highlighting, TOC, compiling, preview, completion, popup docs
@@ -7,7 +7,7 @@ and language-server integration, in pure vim9script.
 1. Overview ................ |quarkdown-overview|
 2. Requirements ............ |quarkdown-requirements|
 3. Commands ................ |quarkdown-commands|
-4. Mappings ................ |quarkdown-mappings|
+4. Mappings and folding ... |quarkdown-mappings|
 5. Completion .............. |quarkdown-completion|
 6. LSP integration ......... |quarkdown-lsp|
 7. Options ................. |quarkdown-options|
@@ -25,6 +25,7 @@ official VS Code extension for Quarkdown (https://quarkdown.com):
 - Syntax highlighting layered on Vim's Markdown syntax
   (|quarkdown-syntax|)
 - An in-file table of contents (|:QuarkdownToc|)
+- Heading-based folding (|quarkdown-folding|)
 - Compiling to HTML/PDF with the quarkdown CLI (|:QuarkdownCompile|)
 - Browser live preview (|:QuarkdownPreview|)
 - Completion of function and parameter names, with or without an LSP
@@ -113,7 +114,7 @@ All commands are buffer-local and available in quarkdown buffers.
 	(|quarkdown-lsp|).
 
 ==============================================================================
-4. Mappings					*quarkdown-mappings*
+4. Mappings and folding				*quarkdown-mappings*
 
 These <Plug> mappings are defined globally; no keys are mapped by
 default. Map them yourself, e.g.: >
@@ -143,6 +144,15 @@ The insert-mode mappings installed for the offline auto-popup (only
 without an LSP client, see |quarkdown-completion|) are buffer-local
 and can be overridden; set |g:quarkdown_complete_auto| to 0 to remove
 them entirely.
+
+FOLDING						*quarkdown-folding*
+
+With |g:quarkdown_folding| (default 1) quarkdown buffers fold by
+heading: a level-N heading (`#`..`######`, decorative `#!` ones
+included) starts a fold of level N, folds nest by heading level, and
+the preamble above the first heading stays unfolded. Folds start open;
+see |fold-commands| (`zM` closes all, `za` toggles the one under the
+cursor).
 
 ==============================================================================
 5. Completion					*quarkdown-completion*
@@ -259,6 +269,11 @@ g:quarkdown_lsp_clients	(default 'auto')
 g:quarkdown_complete_auto	(default 1)
 	Offline auto-popup after `.` / `{` (installed only when no LSP
 	client is active).
+
+						*g:quarkdown_folding*
+g:quarkdown_folding	(default 1)
+	Heading-based folding for quarkdown buffers
+	(|quarkdown-folding|). Set to 0 to keep your own 'foldmethod'.
 
 ==============================================================================
 8. Syntax highlighting				*quarkdown-syntax*
