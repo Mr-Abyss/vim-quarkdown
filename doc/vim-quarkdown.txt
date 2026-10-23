@@ -117,14 +117,27 @@ All commands are buffer-local and available in quarkdown buffers.
 ==============================================================================
 4. Mappings, motions and folding			*quarkdown-mappings*
 
-These <Plug> mappings are defined globally; no keys are mapped by
-default. Map them yourself, e.g.: >
-    map <localleader>qt <Plug>(quarkdown-toc)
-    map <localleader>qc <Plug>(quarkdown-compile)
-    map <localleader>qC <Plug>(quarkdown-compile-sync)
-    map <localleader>qo <Plug>(quarkdown-open)
-    map <localleader>qp <Plug>(quarkdown-preview)
-    map <localleader>qd <Plug>(quarkdown-doc)
+DEFAULT MAPPINGS					*quarkdown-default-mappings*
+
+Quarkdown buffers ship vimtex-style default mappings: the important
+features are mapped, buffer-locally, and |g:quarkdown_mappings| = 0
+installs none of them. The mnemonics are spacemacs-style — `<LocalLeader>q`
+is the quarkdown prefix, `c` the compile sub-prefix — so no sequence is
+a prefix of another and nothing stalls on 'timeoutlen': >
+    <LocalLeader>qt	table of contents
+    <LocalLeader>qcc	compile (async)
+    <LocalLeader>qcs	compile synchronously
+    <LocalLeader>qcp	compile to PDF
+    <LocalLeader>qo	open the last output in the browser
+    <LocalLeader>qp	start the preview server
+    <LocalLeader>qs	stop the compile job / preview server
+    <LocalLeader>qd	docs for the word under the cursor
+<
+`[[` and `]]` jump to the previous / next heading (|quarkdown-motions|).
+
+All of it is also available as global <Plug> mappings for custom keys,
+e.g.: >
+    map <LocalLeader>qc <Plug>(quarkdown-compile)
 <
 Available mappings:
 
@@ -132,12 +145,16 @@ Available mappings:
 	<Plug>(quarkdown-toc)		open the TOC
 						*<Plug>(quarkdown-compile)*
 	<Plug>(quarkdown-compile)	async compile
-						*<Plug>(quarkdown-compile-sync)*
+							*<Plug>(quarkdown-compile-sync)*
 	<Plug>(quarkdown-compile-sync)	synchronous compile
+							*<Plug>(quarkdown-compile-pdf)*
+	<Plug>(quarkdown-compile-pdf)	async compile to PDF
 						*<Plug>(quarkdown-open)*
 	<Plug>(quarkdown-open)		open last output in the browser
-						*<Plug>(quarkdown-preview)*
+							*<Plug>(quarkdown-preview)*
 	<Plug>(quarkdown-preview)	start the preview server
+							*<Plug>(quarkdown-stop)*
+	<Plug>(quarkdown-stop)		stop compile job / preview server
 							*<Plug>(quarkdown-doc)*
 	<Plug>(quarkdown-doc)		docs for the word under the cursor
 							*<Plug>(quarkdown-next-heading)*
@@ -288,6 +305,12 @@ g:quarkdown_complete_auto	(default 1)
 g:quarkdown_folding	(default 1)
 	Heading-based folding for quarkdown buffers
 	(|quarkdown-folding|). Set to 0 to keep your own 'foldmethod'.
+
+						*g:quarkdown_mappings*
+g:quarkdown_mappings	(default 1)
+	Install the buffer-local default mappings
+	(|quarkdown-default-mappings|): the <LocalLeader>q bindings and
+	`[[`/`]]`. Set to 0 and map the |<Plug>| mappings yourself.
 
 ==============================================================================
 8. Syntax highlighting				*quarkdown-syntax*

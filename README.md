@@ -109,16 +109,28 @@ The CLI starts a local webserver and opens the document in your browser; the
 server dies with the vim session, or run `:QuarkdownStop` to stop it early
 (on Windows the listener is killed by its port, so no JVM is orphaned).
 
-Mappings are provided as `<Plug>(quarkdown-toc)`, `<Plug>(quarkdown-compile)`,
-`<Plug>(quarkdown-compile-sync)`, `<Plug>(quarkdown-open)`,
-`<Plug>(quarkdown-preview)` and `<Plug>(quarkdown-doc)`; map them yourself, e.g.
+### Default mappings
 
-```vim
-map <localleader>qt <Plug>(quarkdown-toc)
-map <localleader>qc <Plug>(quarkdown-compile)
-map <localleader>qp <Plug>(quarkdown-preview)
-map <localleader>qd <Plug>(quarkdown-doc)
-```
+Quarkdown buffers ship vimtex-style default mappings (`g:quarkdown_mappings = 0`
+disables them all): spacemacs mnemonics under `<LocalLeader>q` — `q` is the
+quarkdown prefix, `c` the compile sub-prefix, no sequence is a prefix of
+another — plus the `[[`/`]]` heading motions.
+
+| Keys                | Action                              |
+|---------------------|-------------------------------------|
+| `<LocalLeader>qt`   | table of contents                   |
+| `<LocalLeader>qcc`  | compile (async)                     |
+| `<LocalLeader>qcs`  | compile synchronously               |
+| `<LocalLeader>qcp`  | compile to PDF                      |
+| `<LocalLeader>qo`   | open the last output in the browser |
+| `<LocalLeader>qp`   | start the preview server            |
+| `<LocalLeader>qs`   | stop compile job / preview server   |
+| `<LocalLeader>qd`   | docs for the word under the cursor  |
+| `]]` / `[[`         | next / previous heading             |
+
+Everything also exists as a global `<Plug>(quarkdown-…)` mapping for custom
+keys: toc, compile, compile-sync, compile-pdf, open, preview, stop, doc,
+next-heading, prev-heading.
 
 ### Completions
 

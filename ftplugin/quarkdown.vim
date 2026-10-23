@@ -25,7 +25,10 @@ command -buffer QuarkdownStop call quarkdown#Stop()
 command -buffer -nargs=? QuarkdownDoc call quarkdown#doc#Show(<q-args>)
 
 # Default mappings (vimtex-style: the important features ship mapped;
-# set g:quarkdown_mappings = 0 to install none of them).
+# set g:quarkdown_mappings = 0 to install none of them). The <LocalLeader>
+# bindings use spacemacs mnemonics — 'q' is the quarkdown prefix, 'c' the
+# compile sub-prefix — so no leaf is a prefix of another and nothing
+# waits on 'timeoutlen'.
 if get(g:, 'quarkdown_mappings', 1)
   nmap <buffer> [[ <Plug>(quarkdown-prev-heading)
   xmap <buffer> [[ <Plug>(quarkdown-prev-heading)
@@ -33,6 +36,15 @@ if get(g:, 'quarkdown_mappings', 1)
   nmap <buffer> ]] <Plug>(quarkdown-next-heading)
   xmap <buffer> ]] <Plug>(quarkdown-next-heading)
   omap <buffer> ]] <Plug>(quarkdown-next-heading)
+
+  nmap <buffer> <LocalLeader>qt  <Plug>(quarkdown-toc)
+  nmap <buffer> <LocalLeader>qcc <Plug>(quarkdown-compile)
+  nmap <buffer> <LocalLeader>qcs <Plug>(quarkdown-compile-sync)
+  nmap <buffer> <LocalLeader>qcp <Plug>(quarkdown-compile-pdf)
+  nmap <buffer> <LocalLeader>qo  <Plug>(quarkdown-open)
+  nmap <buffer> <LocalLeader>qp  <Plug>(quarkdown-preview)
+  nmap <buffer> <LocalLeader>qs  <Plug>(quarkdown-stop)
+  nmap <buffer> <LocalLeader>qd  <Plug>(quarkdown-doc)
 endif
 
 # Register the language server with any installed LSP client (covers

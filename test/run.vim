@@ -42,6 +42,10 @@ Check(maparg('<Plug>(quarkdown-next-heading)', 'n') !=# ''
       '<Plug>(quarkdown-next-heading) defined in n/x/o')
 Check(maparg('<Plug>(quarkdown-prev-heading)', 'n') !=# '',
       '<Plug>(quarkdown-prev-heading) defined')
+Check(maparg('<Plug>(quarkdown-compile-pdf)', 'n') !=# '',
+      '<Plug>(quarkdown-compile-pdf) defined')
+Check(maparg('<Plug>(quarkdown-stop)', 'n') !=# '',
+      '<Plug>(quarkdown-stop) defined')
 
 # --- 3. syntax ----------------------------------------------------------
 # Line 1: .docname {Sample}
@@ -181,6 +185,18 @@ setf quarkdown
 Check(maparg(']]', 'n') ==# '', 'g:quarkdown_mappings = 0 installs no mappings')
 bwipe!
 unlet! g:quarkdown_mappings
+
+# --- 5d. default <LocalLeader>q mappings ---------------------------------
+# <LocalLeader> defaults to a single backslash when unset
+var ll = get(g:, 'maplocalleader', '\')
+for k in ['qt', 'qcc', 'qcs', 'qcp', 'qo', 'qp', 'qs', 'qd']
+  Check(maparg(ll .. k, 'n') !=# '', $'<localleader>{k} mapped by default')
+endfor
+# end-to-end: <localleader>qt opens the TOC window, q closes it
+feedkeys(ll .. 'qt', 'xt')
+Check(winnr('$') == 2, $'<localleader>qt opens the toc window (windows: {winnr("$")})')
+feedkeys('q', 'xt')
+Check(winnr('$') == 1, $'q closes the toc window again (windows: {winnr("$")})')
 # g:quarkdown_folding = 0 leaves foldmethod alone
 g:quarkdown_folding = 0
 new
@@ -520,6 +536,9 @@ Check(htags =~ 'g:quarkdown_folding\t', ':h g:quarkdown_folding tag exists')
 Check(htags =~ '<Plug>(quarkdown-doc)\t', ':h <Plug>(quarkdown-doc) tag exists')
 Check(htags =~ '<Plug>(quarkdown-next-heading)\t',
       ':h <Plug>(quarkdown-next-heading) tag exists')
+Check(htags =~ '<Plug>(quarkdown-compile-pdf)\t',
+      ':h <Plug>(quarkdown-compile-pdf) tag exists')
+Check(htags =~ 'g:quarkdown_mappings\t', ':h g:quarkdown_mappings tag exists')
 var helpok = true
 try
   execute 'help vim-quarkdown'
