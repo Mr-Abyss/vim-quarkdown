@@ -36,6 +36,12 @@ Check(&l:commentstring ==# '<!--%s-->', $'commentstring (got {&l:commentstring})
 runtime plugin/quarkdown.vim
 Check(maparg('<Plug>(quarkdown-toc)', 'n') !=# '', '<Plug>(quarkdown-toc) defined')
 Check(maparg('<Plug>(quarkdown-compile)', 'n') !=# '', '<Plug>(quarkdown-compile) defined')
+Check(maparg('<Plug>(quarkdown-next-heading)', 'n') !=# ''
+      && maparg('<Plug>(quarkdown-next-heading)', 'x') !=# ''
+      && maparg('<Plug>(quarkdown-next-heading)', 'o') !=# '',
+      '<Plug>(quarkdown-next-heading) defined in n/x/o')
+Check(maparg('<Plug>(quarkdown-prev-heading)', 'n') !=# '',
+      '<Plug>(quarkdown-prev-heading) defined')
 
 # --- 3. syntax ----------------------------------------------------------
 # Line 1: .docname {Sample}
@@ -139,6 +145,42 @@ setl foldlevel=1
 Check(foldclosed(4) == 3 && foldclosedend(4) == 4,
       'level-2 fold ends before the next level-1 heading')
 bwipe!
+
+# --- 5c. [[/]] heading motions -------------------------------------------
+cursor(1, 1)
+quarkdown#MoveHeading(1)
+Check(line('.') == 4, $']] from the top lands on the first heading (got {line(".")})')
+quarkdown#MoveHeading(1)
+Check(line('.') == 8, $']] lands on the next heading (got {line(".")})')
+quarkdown#MoveHeading(-1)
+Check(line('.') == 4, $'[[ lands on the previous heading (got {line(".")})')
+cursor(1, 1)
+quarkdown#MoveHeading(-1)
+Check(line('.') == 1, '[[ before the first heading stays put (no wrap)')
+cursor(line('$'), 1)
+quarkdown#MoveHeading(1)
+Check(line('.') == line('$'), ']] past the last heading stays put (no wrap)')
+# mapped by default to [[ / ]]
+Check(maparg(']]', 'n') !=# '' && maparg('[[', 'n') !=# '',
+      '[[ and ]] mapped by default')
+cursor(1, 1)
+feedkeys(']]', 'xt')
+Check(line('.') == 4, 'feedkeys ]] moves to the first heading')
+# operator target: d]] is exclusive, the target heading line survives
+new
+setline(1, ['# a', 'text', '# b', 'tail'])
+setf quarkdown
+cursor(1, 1)
+feedkeys('d]]', 'xt')
+Check(getline(1, '$') == ['# b', 'tail'], 'd]] deletes up to the next heading')
+bwipe!
+# g:quarkdown_mappings = 0 installs nothing
+g:quarkdown_mappings = 0
+new
+setf quarkdown
+Check(maparg(']]', 'n') ==# '', 'g:quarkdown_mappings = 0 installs no mappings')
+bwipe!
+unlet! g:quarkdown_mappings
 # g:quarkdown_folding = 0 leaves foldmethod alone
 g:quarkdown_folding = 0
 new
@@ -476,6 +518,8 @@ Check(htags =~ ":QuarkdownDoc\t", ':h :QuarkdownDoc tag exists')
 Check(htags =~ 'g:quarkdown_lsp\t', ':h g:quarkdown_lsp tag exists')
 Check(htags =~ 'g:quarkdown_folding\t', ':h g:quarkdown_folding tag exists')
 Check(htags =~ '<Plug>(quarkdown-doc)\t', ':h <Plug>(quarkdown-doc) tag exists')
+Check(htags =~ '<Plug>(quarkdown-next-heading)\t',
+      ':h <Plug>(quarkdown-next-heading) tag exists')
 var helpok = true
 try
   execute 'help vim-quarkdown'

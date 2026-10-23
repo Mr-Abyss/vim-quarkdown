@@ -17,6 +17,15 @@ nnoremap <silent> <Plug>(quarkdown-open) :<C-u>call quarkdown#Open()<CR>
 nnoremap <silent> <Plug>(quarkdown-preview) :<C-u>call quarkdown#Preview([])<CR>
 nnoremap <silent> <Plug>(quarkdown-doc) :<C-u>call quarkdown#doc#Show('')<CR>
 
+nnoremap <silent> <Plug>(quarkdown-next-heading) :<C-u>call quarkdown#MoveHeading(1)<CR>
+onoremap <silent> <Plug>(quarkdown-next-heading) :<C-u>call quarkdown#MoveHeading(1)<CR>
+# <Cmd> in the visual maps: the command runs without leaving visual
+# mode, so the moved cursor extends the selection.
+xnoremap <silent> <Plug>(quarkdown-next-heading) <Cmd>call quarkdown#MoveHeading(1)<CR>
+nnoremap <silent> <Plug>(quarkdown-prev-heading) :<C-u>call quarkdown#MoveHeading(-1)<CR>
+onoremap <silent> <Plug>(quarkdown-prev-heading) :<C-u>call quarkdown#MoveHeading(-1)<CR>
+xnoremap <silent> <Plug>(quarkdown-prev-heading) <Cmd>call quarkdown#MoveHeading(-1)<CR>
+
 # Register the quarkdown language server with any installed LSP client
 # (coc / ale / vim-lsp; see :h quarkdown-lsp). This early call matters for
 # coc: its server config must land in g:coc_user_config before the coc

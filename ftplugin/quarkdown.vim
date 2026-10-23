@@ -24,6 +24,17 @@ command -buffer -nargs=* QuarkdownPreview call quarkdown#Preview([<f-args>])
 command -buffer QuarkdownStop call quarkdown#Stop()
 command -buffer -nargs=? QuarkdownDoc call quarkdown#doc#Show(<q-args>)
 
+# Default mappings (vimtex-style: the important features ship mapped;
+# set g:quarkdown_mappings = 0 to install none of them).
+if get(g:, 'quarkdown_mappings', 1)
+  nmap <buffer> [[ <Plug>(quarkdown-prev-heading)
+  xmap <buffer> [[ <Plug>(quarkdown-prev-heading)
+  omap <buffer> [[ <Plug>(quarkdown-prev-heading)
+  nmap <buffer> ]] <Plug>(quarkdown-next-heading)
+  xmap <buffer> ]] <Plug>(quarkdown-next-heading)
+  omap <buffer> ]] <Plug>(quarkdown-next-heading)
+endif
+
 # Register the language server with any installed LSP client (covers
 # clients that were lazy-loaded after plugin/quarkdown.vim ran).
 quarkdown#lsp#Setup()

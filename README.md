@@ -56,13 +56,17 @@ Opens a vertical location-list window with all headings of the current buffer,
 indented by level (`~ ` marks decorative headings). Press `<CR>` on an entry to
 jump to it, `q` to close.
 
-### Folding
+### Folding and heading motions
 
 Quarkdown buffers fold by heading: each `#`…`######` heading (decorative `#!`
 ones included) starts a fold of its level, nested by heading level; the
 preamble above the first heading stays unfolded. Folds start open — `zM`
 closes all, `za` toggles the one under the cursor. Set
 `g:quarkdown_folding = 0` to keep your own `'foldmethod'`.
+
+`[[` and `]]` jump to the previous / next heading. They work in visual mode
+(the selection extends) and as operator targets (`d]]` deletes up to the next
+heading; the heading line survives). No wrap at the buffer edges.
 
 ### Compiling
 
@@ -239,7 +243,7 @@ Re-run it after upgrading quarkdown to pick up new/changed stdlib functions.
 
 - [x] heading-based folding
 
-- [ ] `[[`/`]]` heading motions
+- [x] `[[`/`]]` heading motions
 
 - [ ] function-call text objects (`if`/`af`, vimtex-style)
 

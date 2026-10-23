@@ -7,7 +7,7 @@ and language-server integration, in pure vim9script.
 1. Overview ................ |quarkdown-overview|
 2. Requirements ............ |quarkdown-requirements|
 3. Commands ................ |quarkdown-commands|
-4. Mappings and folding ... |quarkdown-mappings|
+4. Mappings, motions and folding ... |quarkdown-mappings|
 5. Completion .............. |quarkdown-completion|
 6. LSP integration ......... |quarkdown-lsp|
 7. Options ................. |quarkdown-options|
@@ -26,6 +26,7 @@ official VS Code extension for Quarkdown (https://quarkdown.com):
   (|quarkdown-syntax|)
 - An in-file table of contents (|:QuarkdownToc|)
 - Heading-based folding (|quarkdown-folding|)
+- `[[`/`]]` motions between headings (|quarkdown-motions|)
 - Compiling to HTML/PDF with the quarkdown CLI (|:QuarkdownCompile|)
 - Browser live preview (|:QuarkdownPreview|)
 - Completion of function and parameter names, with or without an LSP
@@ -114,7 +115,7 @@ All commands are buffer-local and available in quarkdown buffers.
 	(|quarkdown-lsp|).
 
 ==============================================================================
-4. Mappings and folding				*quarkdown-mappings*
+4. Mappings, motions and folding			*quarkdown-mappings*
 
 These <Plug> mappings are defined globally; no keys are mapped by
 default. Map them yourself, e.g.: >
@@ -137,8 +138,21 @@ Available mappings:
 	<Plug>(quarkdown-open)		open last output in the browser
 						*<Plug>(quarkdown-preview)*
 	<Plug>(quarkdown-preview)	start the preview server
-						*<Plug>(quarkdown-doc)*
+							*<Plug>(quarkdown-doc)*
 	<Plug>(quarkdown-doc)		docs for the word under the cursor
+							*<Plug>(quarkdown-next-heading)*
+	<Plug>(quarkdown-next-heading)	jump to the next heading (n, x, o)
+							*<Plug>(quarkdown-prev-heading)*
+	<Plug>(quarkdown-prev-heading)	jump to the previous heading (n, x, o)
+
+MOTIONS						*quarkdown-motions*
+
+`[[` and `]]` (mapped by default, see |quarkdown-default-mappings|)
+jump to the previous / next heading; decorative `#!` headings count as
+headings. They work in visual mode — the selection extends — and as
+operator targets: `d]]` deletes up to the next heading, exclusively,
+so the heading line itself survives. No wrap: at the buffer edges the
+cursor stays put.
 
 The insert-mode mappings installed for the offline auto-popup (only
 without an LSP client, see |quarkdown-completion|) are buffer-local

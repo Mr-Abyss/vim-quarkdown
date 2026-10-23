@@ -180,6 +180,13 @@ export def FoldExpr(lnum: number): string
   return hashes ==# '' ? '=' : string(strlen(hashes))
 enddef
 
+# Move the cursor to the next (dir = 1) or previous (dir = -1) heading
+# start; silent no-op at the buffer edges (no wrap). Wired to ]] / [[,
+# which also work in visual mode and as operator targets (exclusive).
+export def MoveHeading(dir: number)
+  search('^\s*#\{1,6}!\?\s', dir > 0 ? 'sW' : 'bsW')
+enddef
+
 # Open a vertical location-list window with the headings of the current
 # buffer. Press <CR> on an entry to jump to it.
 export def Toc()
