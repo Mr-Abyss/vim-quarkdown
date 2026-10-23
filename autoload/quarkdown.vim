@@ -187,6 +187,24 @@ export def MoveHeading(dir: number)
   search('^\s*#\{1,6}!\?\s', dir > 0 ? 'sW' : 'bsW')
 enddef
 
+# Visual-mode variant: extend the selection to the next/previous heading.
+# '< / '> bracket the just-left selection (a visual mapping's ':' sets
+# them); the end the cursor sat on moves, the other stays fixed. A plain
+# cursor move cannot extend a selection from mapping context, so the
+# selection is rebuilt from the anchor after the search.
+export def MoveHeadingV(dir: number)
+  var cur = getpos('.')
+  var anchor = cur == getpos("'>") ? getpos("'<") : getpos("'>")
+  var target = searchpos('^\s*#\{1,6}!\?\s', dir > 0 ? 'sW' : 'bsW')
+  if target[0] == 0
+    normal! gv
+    return
+  endif
+  setpos('.', anchor)
+  normal! v
+  setpos('.', [0, target[0], target[1], 0])
+enddef
+
 # Open a vertical location-list window with the headings of the current
 # buffer. Press <CR> on an entry to jump to it.
 export def Toc()

@@ -168,8 +168,8 @@ MOTIONS						*quarkdown-motions*
 jump to the previous / next heading; decorative `#!` headings count as
 headings. They work in visual mode — the selection extends — and as
 operator targets: `d]]` deletes up to the next heading, exclusively,
-so the heading line itself survives. No wrap: at the buffer edges the
-cursor stays put.
+so the heading line itself survives. They are silent and do not wrap
+at the buffer edges.
 
 The insert-mode mappings installed for the offline auto-popup (only
 without an LSP client, see |quarkdown-completion|) are buffer-local

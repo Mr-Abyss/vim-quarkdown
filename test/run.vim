@@ -170,10 +170,15 @@ Check(maparg(']]', 'n') !=# '' && maparg('[[', 'n') !=# '',
 cursor(1, 1)
 feedkeys(']]', 'xt')
 Check(line('.') == 4, 'feedkeys ]] moves to the first heading')
-# operator target: d]] is exclusive, the target heading line survives
+# operator target + visual selection on a scratch buffer; :normal drives
+# visual-mode mappings reliably headless (feedkeys cannot). The visual
+# case runs first: d]] mutates the buffer.
 new
 setline(1, ['# a', 'text', '# b', 'tail'])
 setf quarkdown
+cursor(1, 1)
+execute 'normal v]]y'
+Check(getreg('"') == "# a\ntext\n#", $'v]]y extends the selection (got {string(getreg("\""))})')
 cursor(1, 1)
 feedkeys('d]]', 'xt')
 Check(getline(1, '$') == ['# b', 'tail'], 'd]] deletes up to the next heading')

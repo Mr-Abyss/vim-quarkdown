@@ -21,12 +21,12 @@ nnoremap <silent> <Plug>(quarkdown-stop) :<C-u>call quarkdown#Stop()<CR>
 
 nnoremap <silent> <Plug>(quarkdown-next-heading) :<C-u>call quarkdown#MoveHeading(1)<CR>
 onoremap <silent> <Plug>(quarkdown-next-heading) :<C-u>call quarkdown#MoveHeading(1)<CR>
-# <Cmd> in the visual maps: the command runs without leaving visual
-# mode, so the moved cursor extends the selection.
-xnoremap <silent> <Plug>(quarkdown-next-heading) <Cmd>call quarkdown#MoveHeading(1)<CR>
+# visual variant rebuilds the selection from the fixed anchor: neither
+# an ex-call nor a '/'-rhs can extend a selection from a visual mapping
+xnoremap <silent> <Plug>(quarkdown-next-heading) :<C-u>call quarkdown#MoveHeadingV(1)<CR>
 nnoremap <silent> <Plug>(quarkdown-prev-heading) :<C-u>call quarkdown#MoveHeading(-1)<CR>
 onoremap <silent> <Plug>(quarkdown-prev-heading) :<C-u>call quarkdown#MoveHeading(-1)<CR>
-xnoremap <silent> <Plug>(quarkdown-prev-heading) <Cmd>call quarkdown#MoveHeading(-1)<CR>
+xnoremap <silent> <Plug>(quarkdown-prev-heading) :<C-u>call quarkdown#MoveHeadingV(-1)<CR>
 
 # Register the quarkdown language server with any installed LSP client
 # (coc / ale / vim-lsp; see :h quarkdown-lsp). This early call matters for

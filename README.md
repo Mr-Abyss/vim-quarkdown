@@ -64,9 +64,9 @@ preamble above the first heading stays unfolded. Folds start open — `zM`
 closes all, `za` toggles the one under the cursor. Set
 `g:quarkdown_folding = 0` to keep your own `'foldmethod'`.
 
-`[[` and `]]` jump to the previous / next heading. They work in visual mode
+`[[` and `]]` jump to the previous / next heading, in normal and visual mode
 (the selection extends) and as operator targets (`d]]` deletes up to the next
-heading; the heading line survives). No wrap at the buffer edges.
+heading; the heading line survives). Silent, no wrap at the buffer edges.
 
 ### Compiling
 
