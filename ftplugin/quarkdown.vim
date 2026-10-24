@@ -43,6 +43,7 @@ if get(g:, 'quarkdown_mappings', 1)
   nmap <buffer> <LocalLeader>qcp <Plug>(quarkdown-compile-pdf)
   nmap <buffer> <LocalLeader>qo  <Plug>(quarkdown-open)
   nmap <buffer> <LocalLeader>qp  <Plug>(quarkdown-preview)
+  nmap <buffer> <LocalLeader>qw  <Plug>(quarkdown-preview-watch)
   nmap <buffer> <LocalLeader>qs  <Plug>(quarkdown-stop)
   nmap <buffer> <LocalLeader>qd  <Plug>(quarkdown-doc)
 endif

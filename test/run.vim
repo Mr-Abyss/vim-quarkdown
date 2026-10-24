@@ -44,6 +44,8 @@ Check(maparg('<Plug>(quarkdown-prev-heading)', 'n') !=# '',
       '<Plug>(quarkdown-prev-heading) defined')
 Check(maparg('<Plug>(quarkdown-compile-pdf)', 'n') !=# '',
       '<Plug>(quarkdown-compile-pdf) defined')
+Check(maparg('<Plug>(quarkdown-preview-watch)', 'n') !=# '',
+      '<Plug>(quarkdown-preview-watch) defined')
 Check(maparg('<Plug>(quarkdown-stop)', 'n') !=# '',
       '<Plug>(quarkdown-stop) defined')
 
@@ -194,7 +196,7 @@ unlet! g:quarkdown_mappings
 # --- 5d. default <LocalLeader>q mappings ---------------------------------
 # <LocalLeader> defaults to a single backslash when unset
 var ll = get(g:, 'maplocalleader', '\')
-for k in ['qt', 'qcc', 'qcs', 'qcp', 'qo', 'qp', 'qs', 'qd']
+for k in ['qt', 'qcc', 'qcs', 'qcp', 'qo', 'qp', 'qw', 'qs', 'qd']
   Check(maparg(ll .. k, 'n') !=# '', $'<localleader>{k} mapped by default')
 endfor
 # end-to-end: <localleader>qt opens the TOC window, q closes it

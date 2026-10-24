@@ -97,6 +97,8 @@ All commands are buffer-local and available in quarkdown buffers.
 <	The CLI opens the document in a browser tab; the server dies with
 	the vim session, or run |:QuarkdownStop| to stop it early (on
 	Windows the listener is killed by its port, so no JVM is orphaned).
+	Note that if a preview server is online, you must first stop it
+	before the -w flag can be passed to make the preview watch changes.
 
 						*:QuarkdownStop*
 :QuarkdownStop
@@ -121,15 +123,19 @@ DEFAULT MAPPINGS					*quarkdown-default-mappings*
 
 Quarkdown buffers ship vimtex-style default mappings: the important
 features are mapped, buffer-locally, and |g:quarkdown_mappings| = 0
-installs none of them. The mnemonics are spacemacs-style — `<LocalLeader>q`
-is the quarkdown prefix, `c` the compile sub-prefix — so no sequence is
-a prefix of another and nothing stalls on 'timeoutlen': >
+installs none of them.
+
+Default mnemonics are spacemacs-style — `<LocalLeader>q`
+for "quarkdown mode", `c` the compile sub-prefix, and first-letter for
+other keys. No sequence is a prefix of another and nothing stalls
+on 'timeoutlen': >
     <LocalLeader>qt	table of contents
     <LocalLeader>qcc	compile (async)
     <LocalLeader>qcs	compile synchronously
     <LocalLeader>qcp	compile to PDF
     <LocalLeader>qo	open the last output in the browser
     <LocalLeader>qp	start the preview server
+    <LocalLeader>qw	preview with live recompile on changes
     <LocalLeader>qs	stop the compile job / preview server
     <LocalLeader>qd	docs for the word under the cursor
 <
@@ -153,6 +159,8 @@ Available mappings:
 	<Plug>(quarkdown-open)		open last output in the browser
 							*<Plug>(quarkdown-preview)*
 	<Plug>(quarkdown-preview)	start the preview server
+							*<Plug>(quarkdown-preview-watch)*
+	<Plug>(quarkdown-preview-watch)	preview with live recompile on changes
 							*<Plug>(quarkdown-stop)*
 	<Plug>(quarkdown-stop)		stop compile job / preview server
 							*<Plug>(quarkdown-doc)*

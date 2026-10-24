@@ -15,6 +15,7 @@ nnoremap <silent> <Plug>(quarkdown-compile) :<C-u>call quarkdown#Compile(false, 
 nnoremap <silent> <Plug>(quarkdown-compile-sync) :<C-u>call quarkdown#Compile(true, [])<CR>
 nnoremap <silent> <Plug>(quarkdown-open) :<C-u>call quarkdown#Open()<CR>
 nnoremap <silent> <Plug>(quarkdown-preview) :<C-u>call quarkdown#Preview([])<CR>
+nnoremap <silent> <Plug>(quarkdown-preview-watch) :<C-u>call quarkdown#Preview(['-w'])<CR>
 nnoremap <silent> <Plug>(quarkdown-doc) :<C-u>call quarkdown#doc#Show('')<CR>
 nnoremap <silent> <Plug>(quarkdown-compile-pdf) :<C-u>call quarkdown#Compile(false, ['--pdf'])<CR>
 nnoremap <silent> <Plug>(quarkdown-stop) :<C-u>call quarkdown#Stop()<CR>
