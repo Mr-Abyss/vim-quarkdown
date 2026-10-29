@@ -125,11 +125,51 @@ disables them all):
 | `<LocalLeader>qw`   | preview with live recompile on changes |
 | `<LocalLeader>qs`   | stop compile job / preview server      |
 | `<LocalLeader>qd`   | docs for the word under the cursor     |
+| `<LocalLeader>qac`  | line → markdown task, then toggle [ ]/[x] |
+| `<LocalLeader>qan`  | line → state comment, then cycle state |
+| `<LocalLeader>qah`  | cycle the heading mission state        |
+| `<LocalLeader>qat`  | todo agenda (`:QuarkdownTodos`)        |
+| `<LocalLeader>qj`   | step todo under cursor forward (count) |
+| `<LocalLeader>qk`   | step todo under cursor backward        |
 | `]]` / `[[`         | next / previous heading                |
 
 Everything also exists as a global `<Plug>(quarkdown-…)` mapping for custom
 keys: toc, compile, compile-sync, compile-pdf, open, preview, preview-watch,
-stop, doc, next-heading, prev-heading.
+stop, doc, next-heading, prev-heading, todo-md, todo-note, todo-heading,
+todos.
+
+### Todo tracking
+
+Todos mark what is unfinished in a document — and where exactly you left
+off. A todo lives in one of three places, depending on what it is:
+
+- **Checkbox** `- [ ]` / `- [x]` — the work IS part of the document:
+  checklists on a wiki page, task lists your readers will see. Renders
+  as a real checkbox in the output.
+- **Sticky note** `<!-- WORKING(john): note -->` — tracking that must
+  NOT reach the reader: drafting reminders, things you are waiting on.
+  The name in parentheses is who/what is holding it up.
+- **Heading state** `## Introduction <!-- TODO -->` — for papers and
+  reports: the heading itself is the todo (org-mode style). The state
+  is a trailing comment, so every draft compiles straight to a clean
+  document — no manual cleanup before publishing.
+
+You work items through their states; the agenda keeps the picture on
+screen instead of in your head:
+
+| State     | When to use it                                                                    |
+|-----------|-----------------------------------------------------------------------------------|
+| `TODO`    | known, not started                                                                |
+| `WORKING` | you are on it right now — the loudest thing in the agenda; keep only a few        |
+| `PENDING` | blocked on someone or something else — name it in the note                        |
+| `DONE`    | finished — fades out of the agenda                                                |
+
+`<LocalLeader>qat` opens the agenda for the current buffer, color-coded
+by state; `:QuarkdownTodos pending` answers "what am I waiting on?".
+`<LocalLeader>qac` / `qan` / `qah` turn a line into the matching todo
+flavor, `<LocalLeader>qj` / `qk` step the state forward and back
+(`3\qj` on a TODO heading goes straight to DONE). Custom state tables
+and the fine print: `:h quarkdown-todo`.
 
 ### Completions
 
@@ -151,6 +191,11 @@ What you get depends on whether an LSP client is attached (see next section):
 Offline limitations (use an LSP client for these): enum *value* completion,
 completions for user-defined functions, `data/stdlib.json` must be
 regenerated with `scripts/gen-stdlib-data.js` when quarkdown adds functions.
+
+**Smart braces**: completing a stdlib function that takes parameters
+opens its `{}` and parks the cursor inside — `.docn` completes into
+`.docname{}` and you keep typing the argument. Works for every completion
+source; `g:quarkdown_complete_braces = 0` disables it.
 
 ### Documentation
 

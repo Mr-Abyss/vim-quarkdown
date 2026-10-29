@@ -1,0 +1,5 @@
+after a: mode=c
+after call: mode=c getline=.docname
+after flush: mode=c getline=.docname col=8
+after cxco: mode=c pum=0 getline=.docname
+after cy: mode=c getline=.docname

@@ -6,6 +6,42 @@ vim9script
 # including user-defined functions); coc drives its own popup and this
 # omnifunc remains available as a C-X C-O fallback.
 
+# Smart braces, fired from the ftplugin's CompleteDone hook. After any
+# completion source (offline omnifunc, coc, ale, vim-lsp) inserts a
+# stdlib function that takes parameters, open its {} and park the cursor
+# inside.
+export def ExpandBraces()
+  # strip a leading dot (coc-style completion words carry one); vim9
+  # single quotes pass backslashes through literally, so the regex is
+  # '^\.' - '^\.' with two backslashes would match a literal backslash
+  var word = substitute(get(v:completed_item, 'word', ''), '^\.', '', '')
+  if word ==# ''
+    return
+  endif
+  var ahead = getline('.')->strpart(col('.') - 1) =~# '^\s*{'
+  var keys = BracesKeys(word, ahead)
+  if keys !=# ''
+    # queued, not executed: we are inside an ongoing insert, the keys
+    # land in that same session
+    feedkeys(keys, 'i')
+  endif
+enddef
+
+# The pure decision: keys to open {} for a completed function name, ''
+# when none apply. braceAhead = a '{' already follows the cursor.
+export def BracesKeys(word: string, braceAhead: bool): string
+  if !quarkdown#Enabled('quarkdown_complete_braces') || braceAhead
+    return ''
+  endif
+  var f = quarkdown#data#Find(substitute(word, '^\.', '', ''))
+  # any parameter counts: stdlib defaults are strings like "null" even
+  # when the sensible call always passes the argument (.docname)
+  if empty(f) || empty(get(f, 'params', []))
+    return ''
+  endif
+  return '{}\\<C-g>U\\<Left>'
+enddef
+
 # Signature on one line: join '\'-continued lines back together.
 def OneLineSig(sig: string): string
   var parts = split(sig, "\n")

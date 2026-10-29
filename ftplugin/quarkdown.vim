@@ -23,6 +23,7 @@ command -buffer QuarkdownOpen call quarkdown#Open()
 command -buffer -nargs=* QuarkdownPreview call quarkdown#Preview([<f-args>])
 command -buffer QuarkdownStop call quarkdown#Stop()
 command -buffer -nargs=? QuarkdownDoc call quarkdown#doc#Show(<q-args>)
+command -buffer -nargs=? QuarkdownTodos call quarkdown#todo#Agenda(<q-args>)
 
 # Default mappings (vimtex-style: the important features ship mapped;
 # set g:quarkdown_mappings = 0 to install none of them). The <LocalLeader>
@@ -46,6 +47,14 @@ if quarkdown#Enabled('quarkdown_mappings')
   nmap <buffer> <LocalLeader>qw  <Plug>(quarkdown-preview-watch)
   nmap <buffer> <LocalLeader>qs  <Plug>(quarkdown-stop)
   nmap <buffer> <LocalLeader>qd  <Plug>(quarkdown-doc)
+  # 'a' = agenda/tracking sub-prefix (spacemacs' major-mode 'a'genda)
+  nmap <buffer> <LocalLeader>qac <Plug>(quarkdown-todo-md)
+  nmap <buffer> <LocalLeader>qan <Plug>(quarkdown-todo-note)
+  nmap <buffer> <LocalLeader>qah <Plug>(quarkdown-todo-heading)
+  nmap <buffer> <LocalLeader>qat <Plug>(quarkdown-todos)
+  # j/k step the todo under the cursor forward/back (count = steps)
+  nmap <buffer> <LocalLeader>qj <Plug>(quarkdown-todo-forward)
+  nmap <buffer> <LocalLeader>qk <Plug>(quarkdown-todo-back)
 endif
 
 # Register the language server with any installed LSP client (covers
@@ -63,6 +72,10 @@ elseif client ==# 'vim-lsp'
 else
   setl omnifunc=quarkdown#complete#Omni
 endif
+
+# Smart braces (|quarkdown-complete-braces|): after ANY completion source
+# inserts a stdlib function with required parameters, open its {}.
+autocmd CompleteDone <buffer> call quarkdown#complete#ExpandBraces()
 
 # Offline auto-popup right after '.' / '{' — only without an LSP client,
 # which shows its own (live, context-aware) completions.

@@ -1,20 +1,22 @@
-*vim-quarkdown.txt*	For Vim version 9.0 and later	Last change: 2026 Oct 23
+*vim-quarkdown.txt*	For Vim version 9.0 and later	Last change: 2026 Oct 30
 
 Vim-quarkdown: unofficial support for the Quarkdown (.qd) typesetting
-language — highlighting, TOC, compiling, preview, completion, popup docs
-and language-server integration, in pure vim9script.
+language — highlighting, TOC, compiling, preview, completion, popup docs,
+org-style todo tracking and language-server integration, in pure
+vim9script.
 
 1. Overview ................ |quarkdown-overview|
 2. Requirements ............ |quarkdown-requirements|
 3. Commands ................ |quarkdown-commands|
 4. Mappings, motions and folding ... |quarkdown-mappings|
-5. Completion .............. |quarkdown-completion|
-6. LSP integration ......... |quarkdown-lsp|
-7. Options ................. |quarkdown-options|
-8. Syntax highlighting ..... |quarkdown-syntax|
-9. Windows notes ........... |quarkdown-windows|
-10. Bundled catalogue ...... |quarkdown-data|
-11. Known limitations ...... |quarkdown-limitations|
+5. Todo tracking ........... |quarkdown-todo|
+6. Completion .............. |quarkdown-completion|
+7. LSP integration ......... |quarkdown-lsp|
+8. Options ................. |quarkdown-options|
+9. Syntax highlighting ..... |quarkdown-syntax|
+10. Windows notes .......... |quarkdown-windows|
+11. Bundled catalogue ...... |quarkdown-data|
+12. Known limitations ...... |quarkdown-limitations|
 
 ==============================================================================
 1. Overview					*vim-quarkdown* *quarkdown-overview*
@@ -32,6 +34,9 @@ official VS Code extension for Quarkdown (https://quarkdown.com):
 - Completion of function and parameter names, with or without an LSP
   client installed (|quarkdown-completion|)
 - Popup documentation for stdlib functions (|:QuarkdownDoc|)
+- Org-mode-style todo tracking: markdown tasks, sticky notes and
+  heading mission states over one configurable state table, with an
+  agenda window (|quarkdown-todo|)
 - Diagnostics/hover/rich completion via the quarkdown language server,
   registered automatically with coc, ale or vim-lsp (|quarkdown-lsp|)
 
@@ -126,7 +131,8 @@ features are mapped, buffer-locally, and |g:quarkdown_mappings| = 0
 installs none of them.
 
 Default mnemonics are spacemacs-style — `<LocalLeader>q`
-for "quarkdown mode", `c` the compile sub-prefix, and first-letter for
+for "quarkdown mode", `c` the compile sub-prefix, `a` the
+agenda/tracking sub-prefix, and first-letter for
 other keys. No sequence is a prefix of another and nothing stalls
 on 'timeoutlen': >
     <LocalLeader>qt	table of contents
@@ -138,6 +144,12 @@ on 'timeoutlen': >
     <LocalLeader>qw	preview with live recompile on changes
     <LocalLeader>qs	stop the compile job / preview server
     <LocalLeader>qd	docs for the word under the cursor
+    <LocalLeader>qac	turn a line into a markdown task, then toggle [ ]/[x]
+    <LocalLeader>qan	turn a line into a state comment, then cycle its state
+    <LocalLeader>qah	cycle the mission state of a heading
+    <LocalLeader>qat	the todo agenda (|quarkdown-todo|)
+    <LocalLeader>qj	step the todo under the cursor forward (count = steps)
+    <LocalLeader>qk	step the todo under the cursor backward
 <
 `[[` and `]]` jump to the previous / next heading (|quarkdown-motions|).
 
@@ -169,6 +181,16 @@ Available mappings:
 	<Plug>(quarkdown-next-heading)	jump to the next heading (n, x, o)
 							*<Plug>(quarkdown-prev-heading)*
 	<Plug>(quarkdown-prev-heading)	jump to the previous heading (n, x, o)
+						*<Plug>(quarkdown-todo-md)*
+	<Plug>(quarkdown-todo-md)	markdown task: convert the line, then
+					toggle [ ]/[x]
+						*<Plug>(quarkdown-todo-note)*
+	<Plug>(quarkdown-todo-note)	comment sticky note: convert the line,
+					then cycle its state
+						*<Plug>(quarkdown-todo-heading)*
+	<Plug>(quarkdown-todo-heading)	cycle the heading mission state
+						*<Plug>(quarkdown-todos)*
+	<Plug>(quarkdown-todos)		open the todo agenda
 
 MOTIONS						*quarkdown-motions*
 
@@ -194,9 +216,65 @@ see |fold-commands| (`zM` closes all, `za` toggles the one under the
 cursor).
 
 ==============================================================================
-5. Completion					*quarkdown-completion*
+5. Todo tracking				*quarkdown-todo*
 
+Org-mode-style todo states over one state table,
+|g:quarkdown_todo_states|: states after the `|` count as done (org's
+own convention); with no `|` the last state does. Three flavors:
+
+	markdown task	`- [ ]` / `- [x]` - renders in the output as a
+			real task-list checkbox (GFM)
+	sticky note	`<!-- WORKING(john): note -->` - never rendered;
+			the parenthetical is free text (who you are
+			waiting on) and survives state changes
+	heading state	`## Introduction <!-- TODO -->` - a trailing
+			comment on a heading line, never rendered, so
+			any draft compiles straight to a clean document
+
+<LocalLeader>qac turns the current line into a markdown task - a plain
+line becomes `- [ ] text`, a `- text` list item gains the box in place
+- and then toggles `[ ]`/`[x]`. <LocalLeader>qan wraps the line in a
+state comment and cycles it through the state table; note this REMOVES
+the line from the compiled output - it is a tracking note, not
+content. <LocalLeader>qah cycles a trailing state comment on a heading
+line and does nothing (with a message) elsewhere. Cycling wraps around
+after the last state. The whole `a` sub-prefix reserves room for the
+agenda to grow (views, filters) without rebinding.
+
+Independent of the flavor, <LocalLeader>qj / <LocalLeader>qk step the
+todo under the cursor one state forward / backward through the state
+table, wrapping at both ends (so from TODO, `qk` lands on DONE). A
+count moves several steps at once: `3\qj` on a TODO heading goes
+straight to DONE. On checkboxes they are binary: `qj` checks, `qk`
+unchecks.
+
+:QuarkdownTodos[ {state}]				*:QuarkdownTodos*
+	Collect all three flavors of the current buffer into the
+	location list as `[STATE] label` lines in document order. With
+	{state} only entries in that state are listed, e.g.
+	`:QuarkdownTodos pending`. `q` closes the window. State tags are
+	highlighted in three visual tiers, mapped from the state name:
+	working-ish states (WORKING, WIP, DOING, ...) are loud
+	(qdAgendaLoud -> WarningMsg), todo-ish and unknown states are
+	ordinary (qdAgendaMid -> Todo), waiting/done-ish states (PENDING,
+	WAITING, BLOCKED, DONE, CANCEL, ...) fade (qdAgendaLow ->
+	Comment). Link the three groups to restyle.
+
+==============================================================================
+6. Completion					*quarkdown-completion*
 What you get depends on whether an LSP client is attached.
+
+SMART BRACES					*quarkdown-complete-braces*
+
+After ANY completion source inserts a stdlib function that takes
+parameters, its `{}` braces are opened automatically and the cursor is
+parked inside — complete `.docn` into `.docname{}` and keep typing the
+argument. Parameter-less functions are left alone, a `{`
+already ahead of the cursor prevents doubling, and it composes with the
+offline auto-popup (the `{` re-opens the parameter menu). Disable with
+|g:quarkdown_complete_braces| = 0. Functions outside the bundled
+catalogue (user-defined, via coc) are not braced — their arity is
+unknown locally.
 
 WITH a client (coc, ale or vim-lsp; see |quarkdown-lsp|):
 	Completions come from the live language server: stdlib *and*
@@ -225,7 +303,7 @@ completion, user-defined functions, and catalogue freshness — rerun
 the generator after upgrading quarkdown (|quarkdown-data|).
 
 ==============================================================================
-6. LSP integration				*quarkdown-lsp*
+7. LSP integration				*quarkdown-lsp*
 
 Diagnostics, hover and rich completion are provided by quarkdown's
 language server, launched as `quarkdown language-server` over stdio
@@ -268,7 +346,7 @@ consumed by none of ale/vim-lsp; coc users can enable them via the
 "quarkdown".
 
 ==============================================================================
-7. Options					*quarkdown-options*
+8. Options					*quarkdown-options*
 
 						*g:quarkdown_compiler*
 g:quarkdown_compiler	(default 'quarkdown')
@@ -309,6 +387,12 @@ g:quarkdown_complete_auto	(default 1)
 	Offline auto-popup after `.` / `{` (installed only when no LSP
 	client is active).
 
+						*g:quarkdown_complete_braces*
+g:quarkdown_complete_braces	(default 1)
+	Smart braces: completing a stdlib function with required
+	parameters opens its {} and parks the cursor inside
+	(|quarkdown-complete-braces|). Set to 0 to keep completion plain.
+
 						*g:quarkdown_folding*
 g:quarkdown_folding	(default 1)
 	Heading-based folding for quarkdown buffers
@@ -320,8 +404,16 @@ g:quarkdown_mappings	(default 1)
 	(|quarkdown-default-mappings|): the <LocalLeader>q bindings and
 	`[[`/`]]`. Set to 0 and map the |<Plug>| mappings yourself.
 
+						*g:quarkdown_todo_states*
+g:quarkdown_todo_states	(default ['TODO', 'WORKING', 'PENDING', '|', 'DONE'])
+	The todo state table for |quarkdown-todo|: the cycling order and,
+	via the `|` separator, which states count as done (agenda
+	filtering, `:QuarkdownTodos done`). With no `|` the last state
+	counts as done. States should be word-like (letters); they are
+	also fed to the syntax highlighting of state comments.
+
 ==============================================================================
-8. Syntax highlighting				*quarkdown-syntax*
+9. Syntax highlighting				*quarkdown-syntax*
 
 Vim's runtime Markdown syntax is loaded first, then Quarkdown
 constructs are layered on top:
@@ -332,16 +424,20 @@ constructs are layered on top:
 - Decorative headings `#!`, `##!`, ...
 - Math blocks `$$$ … $$$` and inline `$ … $`
 - Line-continuation backslashes at end of line
+- Todo tracking (|quarkdown-todo|): state comments `<!-- TODO … -->`
+  (qdTodoState), task-list checkboxes `[ ]` (qdTodoBox) and `[x]`
+  (qdTodoDone); state keywords follow |g:quarkdown_todo_states|
 
 Function syntax is intentionally NOT highlighted inside fenced code,
 inline code and math. New highlight groups defined: qdFuncName,
 qdChain, qdBraceDelim, qdNamedArg, qdNumber, qdMathDelim, qdMathBlock,
-qdMathInline, qdDecoHeading, qdLineCont — link them to your taste: >
+qdMathInline, qdDecoHeading, qdLineCont, qdTodoState, qdTodoBox,
+qdTodoDone — link them to your taste: >
     hi link qdFuncName Function
 <
 
 ==============================================================================
-9. Windows notes				*quarkdown-windows*
+10. Windows notes				*quarkdown-windows*
 
 On Windows quarkdown ships only .cmd/.bat/sh wrapper scripts (no
 .exe), which vim's async |job_start()| cannot execute directly. The
@@ -353,7 +449,7 @@ spawn). Killing a compile job or the preview server takes down the
 whole process tree so no JVM is orphaned.
 
 ==============================================================================
-10. Bundled stdlib catalogue			*quarkdown-data*
+11. Bundled stdlib catalogue			*quarkdown-data*
 
 data/stdlib.json — the data source for offline completion
 (|quarkdown-completion|) and |:QuarkdownDoc| — is generated, not
@@ -367,7 +463,7 @@ Node.js. Re-run it after upgrading quarkdown to pick up new or
 changed functions. The plugin reads the file lazily and caches it.
 
 ==============================================================================
-11. Known limitations				*quarkdown-limitations*
+12. Known limitations				*quarkdown-limitations*
 
 - The language server does not flag unknown functions, wrong argument
   counts or unbalanced braces (see |quarkdown-lsp|); compile for the

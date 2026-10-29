@@ -22,6 +22,13 @@ nnoremap <silent> <Plug>(quarkdown-doc) :<C-u>call quarkdown#doc#Show('')<CR>
 nnoremap <silent> <Plug>(quarkdown-compile-pdf) :<C-u>call quarkdown#Compile(v:false, ['--pdf'])<CR>
 nnoremap <silent> <Plug>(quarkdown-stop) :<C-u>call quarkdown#Stop()<CR>
 
+nnoremap <silent> <Plug>(quarkdown-todo-md) :<C-u>call quarkdown#todo#CycleMarkdown()<CR>
+nnoremap <silent> <Plug>(quarkdown-todo-note) :<C-u>call quarkdown#todo#CycleNote()<CR>
+nnoremap <silent> <Plug>(quarkdown-todo-heading) :<C-u>call quarkdown#todo#CycleHeading()<CR>
+nnoremap <silent> <Plug>(quarkdown-todo-forward) :<C-u>call quarkdown#todo#Shift(v:true)<CR>
+nnoremap <silent> <Plug>(quarkdown-todo-back) :<C-u>call quarkdown#todo#Shift(v:false)<CR>
+nnoremap <silent> <Plug>(quarkdown-todos) :<C-u>call quarkdown#todo#Agenda()<CR>
+
 nnoremap <silent> <Plug>(quarkdown-next-heading) :<C-u>call quarkdown#MoveHeading(1)<CR>
 onoremap <silent> <Plug>(quarkdown-next-heading) :<C-u>call quarkdown#MoveHeading(1)<CR>
 # visual variant rebuilds the selection from the fixed anchor: neither

@@ -48,6 +48,11 @@ Check(maparg('<Plug>(quarkdown-preview-watch)', 'n') !=# '',
       '<Plug>(quarkdown-preview-watch) defined')
 Check(maparg('<Plug>(quarkdown-stop)', 'n') !=# '',
       '<Plug>(quarkdown-stop) defined')
+Check(maparg('<Plug>(quarkdown-todo-md)', 'n') !=# ''
+      && maparg('<Plug>(quarkdown-todo-note)', 'n') !=# ''
+      && maparg('<Plug>(quarkdown-todo-heading)', 'n') !=# ''
+      && maparg('<Plug>(quarkdown-todos)', 'n') !=# '',
+      'todo tracking <Plug>s defined')
 
 # --- 3. syntax ----------------------------------------------------------
 # Line 1: .docname {Sample}
@@ -196,7 +201,8 @@ unlet! g:quarkdown_mappings
 # --- 5d. default <LocalLeader>q mappings ---------------------------------
 # <LocalLeader> defaults to a single backslash when unset
 var ll = get(g:, 'maplocalleader', '\')
-for k in ['qt', 'qcc', 'qcs', 'qcp', 'qo', 'qp', 'qw', 'qs', 'qd']
+for k in ['qt', 'qcc', 'qcs', 'qcp', 'qo', 'qp', 'qw', 'qs', 'qd',
+          'qac', 'qan', 'qah', 'qat', 'qj', 'qk']
   Check(maparg(ll .. k, 'n') !=# '', $'<localleader>{k} mapped by default')
 endfor
 # end-to-end: <localleader>qt opens the TOC window, q closes it
@@ -234,6 +240,130 @@ Check(maparg(ll .. 'qt', 'n') !=# '', 'quarkdown_mappings = "1" (string) install
 bwipe!
 unlet! g:quarkdown_mappings
 
+# --- 5f. todo tracking ---------------------------------------------------
+# state table: org pipe convention (after the pipe counts as done);
+# a missing pipe makes the LAST state done
+g:quarkdown_todo_states = ['A', 'B', '|', 'C']
+Check(quarkdown#todo#AllStates() ==# ['A', 'B', 'C'], 'state table drops the pipe')
+Check(quarkdown#todo#IsDone('C'), 'state after the pipe counts as done')
+Check(!quarkdown#todo#IsDone('A'), 'state before the pipe is open')
+g:quarkdown_todo_states = ['A', 'B']
+Check(quarkdown#todo#IsDone('B'), 'missing pipe: last state counts as done')
+unlet! g:quarkdown_todo_states
+Check(quarkdown#todo#IsDone('DONE') && !quarkdown#todo#IsDone('PENDING'),
+      'default table: DONE is done, PENDING is open')
+
+# \qx: line -> markdown checkbox -> cycle
+new
+setf quarkdown
+Check(exists(':QuarkdownTodos') == 2, ':QuarkdownTodos exists')
+Check(maparg(ll .. 'qac', 'n') !=# '' && maparg(ll .. 'qan', 'n') !=# ''
+      && maparg(ll .. 'qah', 'n') !=# '' && maparg(ll .. 'qat', 'n') !=# '',
+      'todo tracking mappings installed')
+setline(1, ['plain thought', '- item', '- [ ] task', '- [x] done', '# Head', 'a sticky note'])
+for [lnum, want] in [[1, '- [ ] plain thought'], [2, '- [ ] item'],
+                     [3, '- [x] task'], [4, '- [ ] done']]
+  execute $':{lnum}'
+  feedkeys(ll .. 'qac', 'xt')
+  Check(getline(lnum) ==# want, $'\qac line {lnum} (got {getline(lnum)})')
+endfor
+# \qan: plain line -> sticky note comment -> next state
+execute ':6'
+feedkeys(ll .. 'qan', 'xt')
+Check(getline(6) ==# '<!-- TODO: a sticky note -->', $'\qan wraps (got {getline(6)})')
+feedkeys(ll .. 'qan', 'xt')
+Check(getline(6) ==# '<!-- WORKING: a sticky note -->', $'\qan cycles (got {getline(6)})')
+# \qah: heading gets a trailing state comment, cycled to DONE
+execute ':5'
+for want in ['<!-- TODO -->', '<!-- WORKING -->', '<!-- PENDING -->', '<!-- DONE -->']
+  feedkeys(ll .. 'qah', 'xt')
+endfor
+Check(getline(5) ==# '# Head <!-- DONE -->', $'\qah cycles heading state (got {getline(5)})')
+# \qj/\qk: step any flavor's state forward/back, count = steps
+# (own scratch buffer - the agenda checks below count on the fixture above)
+new
+setf quarkdown
+setline(1, ['- [ ] box', '- [x] box', '<!-- PENDING: note -->', '# H <!-- TODO -->'])
+execute ':1'
+feedkeys(ll .. 'qj', 'xt')
+Check(getline(1) ==# '- [x] box', $'\qj checks the box (got {getline(1)})')
+execute ':2'
+feedkeys(ll .. 'qk', 'xt')
+Check(getline(2) ==# '- [ ] box', $'\qk unchecks the box (got {getline(2)})')
+execute ':3'
+feedkeys(ll .. 'qj', 'xt')
+Check(getline(3) ==# '<!-- DONE: note -->', $'\qj steps forward (got {getline(3)})')
+feedkeys(ll .. 'qk', 'xt')
+Check(getline(3) ==# '<!-- PENDING: note -->', $'\qk steps back (got {getline(3)})')
+feedkeys('2' .. ll .. 'qk', 'xt')
+Check(getline(3) ==# '<!-- TODO: note -->', $'2\qk jumps two back (got {getline(3)})')
+execute ':4'
+feedkeys('3' .. ll .. 'qj', 'xt')
+Check(getline(4) ==# '# H <!-- DONE -->', $'3\qj wraps to DONE (got {getline(4)})')
+feedkeys(ll .. 'qk', 'xt')
+Check(getline(4) ==# '# H <!-- PENDING -->', $'\qk wraps back to PENDING (got {getline(4)})')
+execute ':1'
+feedkeys(ll .. 'qk', 'xt')
+Check(getline(1) ==# '- [ ] box', $'\qk on a checked box unchecks it (got {getline(1)})')
+bwipe!
+# \qT: the agenda (delta-based: the scratch split leaves 2 windows here);
+# loclist is read after closing the agenda, from the source window
+var before = winnr('$')
+feedkeys(ll .. 'qat', 'xt')
+Check(winnr('$') == before + 1, $'\qat opens the agenda (windows: {winnr("$")})')
+# state tags are highlighted in three visual tiers, mapped from the
+# state name (matchadd is window-local, assert while the agenda is open)
+var mgroups = {}
+for m in getmatches()
+  mgroups[m.group] = m.pattern
+endfor
+Check(has_key(mgroups, 'qdAgendaLoud') && mgroups['qdAgendaLoud'] =~# 'WORKING',
+      'working is loud')
+Check(has_key(mgroups, 'qdAgendaMid') && mgroups['qdAgendaMid'] =~# 'TODO',
+      'todo is mid')
+Check(has_key(mgroups, 'qdAgendaLow') && mgroups['qdAgendaLow'] =~# 'DONE',
+      'pending/done are low')
+feedkeys('q', 'xt')
+Check(winnr('$') == before, $'q closes the agenda (windows: {winnr("$")})')
+Check(len(getloclist(0)) == 6, $'agenda collects all three flavors (got {len(getloclist(0))})')
+quarkdown#todo#Agenda('working')
+silent! close
+Check(len(getloclist(0)) == 1, $'agenda filter by state (got {len(getloclist(0))})')
+quarkdown#todo#Agenda('done')
+silent! close
+Check(len(getloclist(0)) == 2, $'agenda filter done (got {len(getloclist(0))})')
+# syntax: checkbox and state keyword groups. Syntax must see the content
+# at load time - in -es mode, lines changed after :setf are only re-parsed
+# on the next :syn command, so edit a real file instead (as section 3 does).
+var tf = tempname() .. '.qd'
+writefile(['- [ ] task', '- [x] task', '<!-- TODO: note -->', '# Head <!-- TODO -->'], tf)
+execute 'edit!' fnameescape(tf)
+syntax sync fromstart
+Check(GroupAt(1, 1) ==# 'qdTodoBox', $'[ ] colored (got {GroupAt(1, 1)})')
+Check(GroupAt(2, 1) ==# 'qdTodoDone', $'[x] colored (got {GroupAt(2, 1)})')
+Check(GroupAt(3, 6) ==# 'qdTodoState', $'note keyword colored (got {GroupAt(3, 6)})')
+Check(GroupAt(4, 13) ==# 'qdTodoState', $'heading state colored (got {GroupAt(4, 13)})')
+bwipe!
+delete(fnameescape(tf))
+
+# --- 5g. smart braces -----------------------------------------------------
+# BracesKeys(word, braceAhead) is the pure decision (headless insert-mode
+# key execution is unreliable, so no popup dance); ExpandBraces() wraps it
+# with v:completed_item and queues the keys into the ongoing insert
+Check(exists('#CompleteDone') == 1, 'CompleteDone hook installed')
+Check(quarkdown#complete#BracesKeys('docname', v:false) !=# '',
+      'docname gets braces')
+Check(quarkdown#complete#BracesKeys('docname', v:true) ==# '',
+      'no doubling when a { already follows')
+Check(quarkdown#complete#BracesKeys('.docname', v:false) !=# '',
+      'leading dot tolerated (coc-style words)')
+Check(quarkdown#complete#BracesKeys('allemojis', v:false) ==# '',
+      'no braces for parameter-less functions')
+g:quarkdown_complete_braces = 0
+Check(quarkdown#complete#BracesKeys('docname', v:false) ==# '',
+      'smart braces can be disabled')
+unlet! g:quarkdown_complete_braces
+
 # --- 6. compilation -----------------------------------------------------
 if executable('quarkdown')
   var tmp = $'{tempname()}-qdtest'
@@ -242,12 +372,12 @@ if executable('quarkdown')
   writefile(['.docname {Bad}', '', '.nosuchfunc {1}'], tmp .. '/bad.qd')
 
   # sync, success
-  execute 'edit' fnameescape(tmp .. '/good.qd')
+  execute 'edit!' fnameescape(tmp .. '/good.qd')
   var r = quarkdown#Compile(true, ['-o', tmp .. '/out1'])
   Check(r.ok, $'sync compile succeeds (exit {r.code})')
 
   # sync, failure -> quickfix
-  execute 'edit' fnameescape(tmp .. '/bad.qd')
+  execute 'edit!' fnameescape(tmp .. '/bad.qd')
   r = quarkdown#Compile(true, ['-o', tmp .. '/out2'])
   Check(!r.ok, $'sync compile of broken file fails (exit {r.code})')
   var qf = getqflist()
@@ -257,7 +387,7 @@ if executable('quarkdown')
   cclose
 
   # async job
-  execute 'edit' fnameescape(tmp .. '/good.qd')
+  execute 'edit!' fnameescape(tmp .. '/good.qd')
   var started = quarkdown#Compile(false, ['-o', tmp .. '/out3'])
   Check(started.ok && get(started, 'started', false), 'async job started')
   var waited = 0
@@ -290,7 +420,7 @@ if executable('quarkdown')
   writefile(['.docname {Deep}', '', '# Deep doc', ''], tmp .. '/deep/good.qd')
   var repoDir = getcwd()
   chdir(tmp)
-  execute 'edit' fnameescape(tmp .. '/deep/good.qd')
+  execute 'edit!' fnameescape(tmp .. '/deep/good.qd')
   var deep = quarkdown#Compile(true, [])
   Check(deep.ok, $'sync compile from foreign cwd ok (exit {deep.code})')
   Check(isdirectory(tmp .. '/deep/quarkdown-output'), 'output beside the file')
@@ -307,7 +437,7 @@ if executable('quarkdown')
   # random port: a fixed one can collide with anything already listening
   # on the machine (Zotero grabbed 19876 one day)
   var port = string(20000 + reltime()[1] % 20000)
-  execute 'edit' fnameescape(tmp .. '/good.qd')
+  execute 'edit!' fnameescape(tmp .. '/good.qd')
   var pv = quarkdown#Preview(['-b', 'none', '--server-port', port])
   Check(pv.ok && get(pv, 'started', false), 'preview job started')
   var code = '000'
