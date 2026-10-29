@@ -10,14 +10,16 @@ if !has('vim9script')
 endif
 g:loaded_quarkdown = 1
 
+# A mapping rhs executes on the legacy command line: bare true/false are
+# E121 there — v:-constants are the only spelling both dialects accept.
 nnoremap <silent> <Plug>(quarkdown-toc) :<C-u>call quarkdown#Toc()<CR>
-nnoremap <silent> <Plug>(quarkdown-compile) :<C-u>call quarkdown#Compile(false, [])<CR>
-nnoremap <silent> <Plug>(quarkdown-compile-sync) :<C-u>call quarkdown#Compile(true, [])<CR>
+nnoremap <silent> <Plug>(quarkdown-compile) :<C-u>call quarkdown#Compile(v:false, [])<CR>
+nnoremap <silent> <Plug>(quarkdown-compile-sync) :<C-u>call quarkdown#Compile(v:true, [])<CR>
 nnoremap <silent> <Plug>(quarkdown-open) :<C-u>call quarkdown#Open()<CR>
 nnoremap <silent> <Plug>(quarkdown-preview) :<C-u>call quarkdown#Preview([])<CR>
 nnoremap <silent> <Plug>(quarkdown-preview-watch) :<C-u>call quarkdown#Preview(['-w'])<CR>
 nnoremap <silent> <Plug>(quarkdown-doc) :<C-u>call quarkdown#doc#Show('')<CR>
-nnoremap <silent> <Plug>(quarkdown-compile-pdf) :<C-u>call quarkdown#Compile(false, ['--pdf'])<CR>
+nnoremap <silent> <Plug>(quarkdown-compile-pdf) :<C-u>call quarkdown#Compile(v:false, ['--pdf'])<CR>
 nnoremap <silent> <Plug>(quarkdown-stop) :<C-u>call quarkdown#Stop()<CR>
 
 nnoremap <silent> <Plug>(quarkdown-next-heading) :<C-u>call quarkdown#MoveHeading(1)<CR>

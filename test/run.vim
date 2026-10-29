@@ -204,6 +204,12 @@ feedkeys(ll .. 'qt', 'xt')
 Check(winnr('$') == 2, $'<localleader>qt opens the toc window (windows: {winnr("$")})')
 feedkeys('q', 'xt')
 Check(winnr('$') == 1, $'q closes the toc window again (windows: {winnr("$")})')
+# a <Plug> rhs executes on the legacy command line where bare true/false
+# are E121 — assert only v:-constants appear in the compile rhs's
+for name in ['(quarkdown-compile)', '(quarkdown-compile-sync)', '(quarkdown-compile-pdf)']
+  var rhs = maparg('<Plug>' .. name, 'n')->substitute('v:true\|v:false', '', 'g')
+  Check(rhs !~# '\<true\>\|\<false\>', $'<Plug>{name} rhs has no bare true/false')
+endfor
 # g:quarkdown_folding = 0 leaves foldmethod alone
 g:quarkdown_folding = 0
 new
