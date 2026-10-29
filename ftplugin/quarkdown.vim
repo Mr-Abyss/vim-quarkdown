@@ -12,7 +12,7 @@ setl matchpairs+={:}
 
 # Heading-based folding: a level-N heading opens a fold of level N; the
 # preamble above the first heading stays unfolded.
-if get(g:, 'quarkdown_folding', 1)
+if quarkdown#Enabled('quarkdown_folding')
   setl foldmethod=expr
   setl foldexpr=quarkdown#FoldExpr(v:lnum)
 endif
@@ -29,7 +29,7 @@ command -buffer -nargs=? QuarkdownDoc call quarkdown#doc#Show(<q-args>)
 # bindings use spacemacs mnemonics — 'q' is the quarkdown prefix, 'c' the
 # compile sub-prefix — so no leaf is a prefix of another and nothing
 # waits on 'timeoutlen'.
-if get(g:, 'quarkdown_mappings', 1)
+if quarkdown#Enabled('quarkdown_mappings')
   nmap <buffer> [[ <Plug>(quarkdown-prev-heading)
   xmap <buffer> [[ <Plug>(quarkdown-prev-heading)
   omap <buffer> [[ <Plug>(quarkdown-prev-heading)
@@ -66,7 +66,7 @@ endif
 
 # Offline auto-popup right after '.' / '{' — only without an LSP client,
 # which shows its own (live, context-aware) completions.
-if get(g:, 'quarkdown_complete_auto', 1) && client ==# ''
+if quarkdown#Enabled('quarkdown_complete_auto') && client ==# ''
   inoremap <buffer> <silent> . .<Cmd>call quarkdown#complete#Auto('func')<CR>
   inoremap <buffer> <silent> { {<Cmd>call quarkdown#complete#Auto('param')<CR>
 endif

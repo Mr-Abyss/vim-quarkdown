@@ -164,7 +164,7 @@ enddef
 #   kind 'func':  '.' was just typed and starts a function call
 #   kind 'param': '{' was just typed right after a call's name
 export def Auto(kind: string)
-  if !get(g:, 'quarkdown_complete_auto', 1) || pumvisible() || InCode()
+  if !quarkdown#Enabled('quarkdown_complete_auto') || pumvisible() || InCode()
     return
   endif
   if !quarkdown#data#Loaded()

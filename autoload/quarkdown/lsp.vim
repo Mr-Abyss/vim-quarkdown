@@ -93,7 +93,7 @@ enddef
 # The client the current buffer should lean on ('' when none). Used by the
 # ftplugin to pick &omnifunc and to suppress the offline auto-popup.
 export def ActiveClient(): string
-  if !get(g:, 'quarkdown_lsp', 1) || !Available()
+  if !quarkdown#Enabled('quarkdown_lsp') || !Available()
     return ''
   endif
   var chosen = ChosenClients()
@@ -114,7 +114,7 @@ enddef
 # config to be picked up when its service starts) and from the ftplugin
 # (covers clients that were lazy-loaded later).
 export def Setup()
-  if !get(g:, 'quarkdown_lsp', 1) || !Available()
+  if !quarkdown#Enabled('quarkdown_lsp') || !Available()
     return
   endif
   for c in ChosenClients()

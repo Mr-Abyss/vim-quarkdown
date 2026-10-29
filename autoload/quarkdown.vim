@@ -19,6 +19,15 @@ def Compiler(): string
   return get(g:, 'quarkdown_compiler', 'quarkdown')
 enddef
 
+# Truthiness of a boolean g: option. Legacy vimrcs love quoting values
+# (`let g:x = '1'`), and vim9script rejects `if '1'` outright (E1135),
+# which used to abort the ftplugin mid-file and silently drop every
+# mapping. Coerce: strings via str2nr, numbers/bools via !!.
+export def Enabled(name: string, dflt = true): bool
+  var val = get(g:, name, dflt)
+  return type(val) == v:t_string ? str2nr(val) != 0 : !!val
+enddef
+
 # Assemble the compile command line.
 #   --strict by default (g:quarkdown_compile_strict = 0 to disable)
 #   --timeout from g:quarkdown_compile_timeout (default 0 = disabled;
@@ -26,7 +35,7 @@ enddef
 #     the flag and restores the CLI default)
 export def BuildCmd(src: string, extra: list<string>): list<string>
   var cmd: list<string> = [Compiler(), 'c', src]
-  if get(g:, 'quarkdown_compile_strict', 1)
+  if Enabled('quarkdown_compile_strict')
     cmd += ['--strict']
   endif
   var timeout = get(g:, 'quarkdown_compile_timeout', 0)

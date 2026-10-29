@@ -212,6 +212,22 @@ Check(&l:foldmethod !=# 'expr', 'folding can be disabled')
 bwipe!
 unlet! g:quarkdown_folding
 
+# --- 5e. string option values from legacy vimrcs --------------------------
+# a legacy vimrc may quote values (`let g:x = '1'`); vim9script rejects
+# `if '1'` (E1135), which used to abort the ftplugin and silently drop
+# every mapping while commands and folding kept working
+g:quarkdown_mappings = '0'
+new
+setf quarkdown
+Check(maparg(']]', 'n') ==# '', 'quarkdown_mappings = "0" (string) installs no mappings')
+bwipe!
+g:quarkdown_mappings = '1'
+new
+setf quarkdown
+Check(maparg(ll .. 'qt', 'n') !=# '', 'quarkdown_mappings = "1" (string) installs mappings')
+bwipe!
+unlet! g:quarkdown_mappings
+
 # --- 6. compilation -----------------------------------------------------
 if executable('quarkdown')
   var tmp = $'{tempname()}-qdtest'
