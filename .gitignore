@@ -219,6 +219,8 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 test/last-result.txt
+test/probe-out.txt
+verify-out.txt
 
 # agentic harness
 .zcode/
