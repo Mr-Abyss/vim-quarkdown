@@ -97,6 +97,21 @@ Options:
 | `g:quarkdown_compile_strict` | `1`            | Pass `--strict` so errors surface in the quickfix    |
 | `g:quarkdown_compile_timeout`| `0` (disabled) | Seconds passed as `--timeout`; the CLI default of 30s is too short for large documents. `-1` omits the flag |
 
+Quarkdown 2.x sandboxes compilation: reading files is allowed inside the
+document's own directory (`project-read`, default), while anything
+outside it — e.g. `.read {../notes/x.mmd}` — needs the `global-read`
+permission, which the CLI withholds by default. The plugin does not
+grant it for you (a downloaded .qd with that permission could read any
+file and embed it in its output). When you legitimately need it:
+
+```vim
+let g:quarkdown_compile_opts = ['--allow', 'global-read']
+```
+
+or keep referenced assets inside the document's directory, where the
+default suffices. `network` (remote media) and `process` (`.env`) work
+the same way. Details: `:h quarkdown-permissions`.
+
 ### Live preview
 
 ```

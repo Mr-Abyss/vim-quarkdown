@@ -88,6 +88,36 @@ All commands are buffer-local and available in quarkdown buffers.
 	|g:quarkdown_compile_timeout| for the flags that are added
 	automatically.
 
+PERMISSIONS					*quarkdown-permissions*
+
+Quarkdown 2.x sandboxes document compilation. By default the CLI grants
+`project-read` (read files within the project directory - the main
+document's directory, regardless of vim's working directory),
+`native-content` (raw HTML/CSS) and `package-install`; `global-read`
+(files anywhere else), `network` and `process` (environment variables)
+are withheld. The permission a function needs is listed in its
+`:QuarkdownDoc` entry - e.g. `.read` uses project-read inside the
+project directory and global-read outside it, `.env` needs process.
+
+The typical trigger is reading an asset one level up: >
+	.mermaid caption:{...}
+	    .read {../notes/structure.mmd}   " needs global-read
+<	Under the default |g:quarkdown_compile_strict| = 1 the compile
+	then fails (exit 72) with `Missing required permission:
+	global-read` in the quickfix; without strict, the error renders
+	as a box inside the output instead.
+
+The plugin does NOT grant extra permissions on your behalf - that is a
+security decision (a downloaded .qd with global-read could read any
+file and embed it in its output). When your project legitimately
+references files outside the document's directory, opt in via >
+    let g:quarkdown_compile_opts = ['--allow', 'global-read']
+<	in your vimrc (|g:quarkdown_compile_opts|). First try keeping the
+	referenced files inside the document's directory - the default
+	project-read then suffices, and that is also the shape
+	|:QuarkdownCompile|-based subdocuments and `.include` are
+	designed for.
+
 						*:QuarkdownOpen*
 :QuarkdownOpen
 	Open the last successfully compiled document (index.html) in the
