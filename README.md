@@ -112,6 +112,13 @@ or keep referenced assets inside the document's directory, where the
 default suffices. `network` (remote media) and `process` (`.env`) work
 the same way. Details: `:h quarkdown-permissions`.
 
+Compiles that produce a PDF open it in your PDF viewer automatically,
+vimtex-style — the viewer popping up replaces the "compiled successfully"
+message. `g:quarkdown_pdf_viewer` pins a specific viewer (SumatraPDF is
+a good pick: it re-opens in place on recompile, while Adobe-locked files
+block the next compile); `g:quarkdown_view_pdf = 0` restores the plain
+message.
+
 ### Live preview
 
 ```

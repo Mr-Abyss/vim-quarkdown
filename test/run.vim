@@ -386,6 +386,17 @@ Check(quarkdown#complete#BracesKeys('docname', v:false) ==# '',
       'smart braces can be disabled')
 unlet! g:quarkdown_complete_braces
 
+# --- 5h. pdf auto-view decision ------------------------------------------
+# only the decision is tested - actually running it would spawn a viewer
+Check(quarkdown#OpensPdf('C:/x/quarkdown-output/Doc.pdf') == v:true,
+      'pdf output opens the viewer')
+Check(quarkdown#OpensPdf('C:/x/quarkdown-output/Doc') == v:false,
+      'html output does not spawn a viewer')
+g:quarkdown_view_pdf = 0
+Check(quarkdown#OpensPdf('C:/x/quarkdown-output/Doc.pdf') == v:false,
+      'pdf auto-view can be disabled')
+unlet! g:quarkdown_view_pdf
+
 # --- 6. compilation -----------------------------------------------------
 if executable('quarkdown')
   var tmp = $'{tempname()}-qdtest'

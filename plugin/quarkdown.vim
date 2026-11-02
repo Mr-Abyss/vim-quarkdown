@@ -10,6 +10,17 @@ if !has('vim9script')
 endif
 g:loaded_quarkdown = 1
 
+# The quarkdown-bundled JRE is Temurin 17, i.e. pre-JEP 400: its piped
+# stdout is platform-encoded - GBK on zh-CN Windows - so a Chinese
+# .docname inside the compile output's `Success @` path arrives as
+# invalid utf-8 and breaks path handling downstream (E475). Set the
+# encoding for every JVM vim spawns (compile, preview, LSP); children
+# inherit it regardless of how they are launched. g:quarkdown_jvm_utf8
+# = 0 opts out; an existing JAVA_TOOL_OPTIONS is left untouched.
+if quarkdown#Enabled('quarkdown_jvm_utf8') && !exists('$JAVA_TOOL_OPTIONS')
+  setenv('JAVA_TOOL_OPTIONS', '-Dfile.encoding=UTF-8')
+endif
+
 # A mapping rhs executes on the legacy command line: bare true/false are
 # E121 there — v:-constants are the only spelling both dialects accept.
 nnoremap <silent> <Plug>(quarkdown-toc) :<C-u>call quarkdown#Toc()<CR>

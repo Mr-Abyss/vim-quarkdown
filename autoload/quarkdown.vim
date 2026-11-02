@@ -98,8 +98,16 @@ enddef
 # Drop Java stack-trace lines ('at com.quarkdown...') and blanks from the
 # compiler output, keeping the actual error messages.
 def FilterErrors(lines: list<string>): list<string>
-  return copy(lines)->filter((_, l: string): bool => l !~ '^\s*at ' && l !~ '^\s*$')
+  return copy(lines)->filter((_, l: string): bool =>
+    l !~ '^\s*at ' && l !~ '^\s*$' && l !~ '^Picked up JAVA_TOOL_OPTIONS')
 enddef
+
+# The bundled JRE is Temurin 17, i.e. pre-JEP 400: when its stdout is a
+# pipe (our job/channel, or the sync system() capture) System.out is
+# encoded in the platform codepage - GBK on zh-CN Windows - so a Chinese
+# .docname inside the `Success @` path arrives as invalid utf-8 and
+# later chokes tr() in ViewPdf with E475. plugin/quarkdown.vim sets
+# JAVA_TOOL_OPTIONS globally at load time for exactly this reason.
 
 # Kill a job and (on Windows, native or msys) its whole process tree;
 # killing the wrapper (cmd.exe / sh script) alone would orphan the JVM.
@@ -147,15 +155,42 @@ def Finish(code: number, lines: list<string>): dict<any>
       var path = matchstr(StripAnsi(l), 'Success @ \zs.*\ze\s*$')
       if path !=# ''
         state.lastOut = ToVimPath(path)
-        echo $'Quarkdown: compiled successfully -> {state.lastOut}'
         break
       endif
     endfor
-    if state.lastOut ==# ''
+    if OpensPdf(state.lastOut)
+      ViewPdf()
+    elseif state.lastOut !=# ''
+      echo $'Quarkdown: compiled successfully -> {state.lastOut}'
+    else
       echo 'Quarkdown: compiled successfully'
     endif
   endif
   return {ok: code == 0, code: code}
+enddef
+
+# vimtex-style: a compile that produced a PDF opens it instead of
+# echoing the path - the viewer popping up IS the completion notice.
+# g:quarkdown_view_pdf = 0 keeps the old echo; g:quarkdown_pdf_viewer
+# pins a viewer command (SumatraPDF reopens in place, Adobe locks).
+export def OpensPdf(lastOut: string): bool
+  return lastOut =~? '\.pdf$' && quarkdown#Enabled('quarkdown_view_pdf')
+enddef
+
+def ViewPdf()
+  var dbgl = 'D:/PARA/1.Project/vim-quarkdown/test/viewpdf-debug.log'
+  writefile([$'GUI lastOut strtrans: {strtrans(state.lastOut)}'], dbgl)
+  writefile([$'GUI viewer=[{get(g:, "quarkdown_pdf_viewer", "UNSET")}] shell=[{&shell}]'], dbgl, 'a')
+  try
+    var cmd = get(g:, 'quarkdown_pdf_viewer', '')
+    cmd = cmd !=# '' ? cmd : 'start ""'
+    cmd ..= ' ' .. shellescape(tr(state.lastOut, '/', '\'))
+    writefile([$'GUI cmd strtrans: {strtrans(cmd)}'], dbgl, 'a')
+    job_start('cmd /s /c "' .. cmd .. '"')
+    writefile(['GUI job_start ok'], dbgl, 'a')
+  catch
+    writefile(['GUI CAUGHT: ' .. v:exception .. ' @ ' .. v:throwpoint], dbgl, 'a')
+  endtry
 enddef
 
 # Collect ATX headings of a buffer.
@@ -292,6 +327,7 @@ export def Compile(sync: bool, extra: list<string>): dict<any>
     # system() inherits vim's cwd; chdir to the file's directory so the
     # output lands beside the document, exactly like the async path.
     var wd = getcwd()
+    setenv('JAVA_TOOL_OPTIONS', '-Dfile.encoding=UTF-8')
     try
       chdir(dir)
       var quoted = join(map(copy(cmd), (_, v: string): string => ShellQuote(v)), ' ')
@@ -299,6 +335,7 @@ export def Compile(sync: bool, extra: list<string>): dict<any>
       return Finish(v:shell_error, split(out, '\n'))
     finally
       chdir(wd)
+      setenv('JAVA_TOOL_OPTIONS', v:null)
     endtry
   endif
 

@@ -88,6 +88,12 @@ All commands are buffer-local and available in quarkdown buffers.
 	|g:quarkdown_compile_timeout| for the flags that are added
 	automatically.
 
+	A compile that produced a PDF (`--pdf`) opens it in the viewer
+	instead of echoing the path, vimtex-style. |g:quarkdown_view_pdf|
+	= 0 restores the echo; |g:quarkdown_pdf_viewer| pins a specific
+	viewer command (SumatraPDF re-opens in place on recompile, while
+	Adobe-locked files make the next compile fail).
+
 PERMISSIONS					*quarkdown-permissions*
 
 Quarkdown 2.x sandboxes document compilation. By default the CLI grants
@@ -388,6 +394,32 @@ g:quarkdown_compiler	(default 'quarkdown')
 g:quarkdown_compile_opts	(default [])
 	Extra arguments appended to every compilation (compile and
 	preview alike).
+
+						*g:quarkdown_view_pdf*
+g:quarkdown_view_pdf	(default 1)
+	A compile that produced a PDF opens it in the viewer instead of
+	echoing the path (|:QuarkdownCompile|). Set to 0 to keep the
+	plain completion message.
+
+						*g:quarkdown_jvm_utf8*
+g:quarkdown_jvm_utf8	(default 1)
+	The quarkdown-bundled JRE is Temurin 17 (pre-JEP 400): its piped
+	stdout is platform-encoded (GBK on zh-CN Windows), which poisons
+	compile output paths containing non-ASCII .docnames (a Chinese
+	document name then breaks the PDF auto-view with E475). At load
+	time the plugin sets JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF-8 so
+	every JVM it spawns speaks utf-8; set to 0 to leave your
+	environment untouched (an existing JAVA_TOOL_OPTIONS is never
+	overridden).
+
+						*g:quarkdown_pdf_viewer*
+g:quarkdown_pdf_viewer	(default '')
+	View command for the opened PDF. Empty means the OS default
+	handler (`start` on Windows, `open`/`xdg-open` elsewhere). A
+	value is used as a command prefix, flags included, e.g.: >
+	    let g:quarkdown_pdf_viewer = 'SumatraPDF.exe -reuse-instance'
+<	SumatraPDF re-opens in place on recompile; viewers that lock the
+	file (Adobe) make the next compile fail until closed.
 
 						*g:quarkdown_compile_strict*
 g:quarkdown_compile_strict	(default 1)
