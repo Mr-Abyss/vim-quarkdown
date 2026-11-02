@@ -47,6 +47,16 @@ syn match qdFuncName /\\\@<!\.[A-Za-z_][A-Za-z0-9_]*[?!]\=/
       \ contains=@NoSpell
       \ containedin=ALLBUT,markdownCode,markdownCodeBlock,qdMathBlock,qdMathInline
 
+" A "<" that cannot start an HTML tag (not followed by a letter, /, $ or !)
+" is plain text, e.g. "target < 0.10". html.vim's htmlTag otherwise starts
+" at any <[^/] and runs to the next >, swallowing whole paragraphs into
+" Function color. tpope's runtime markdown.vim guards this (markdownValid)
+" but preservim/vim-markdown, which replaces it, does not.
+" Member of @htmlTop so it is allowed exactly where htmlTag is, and never
+" inside a real tag, where it could obscure the closing >.
+syn match qdNotTag '<[a-zA-Z/$!]\@!' transparent contains=NONE
+syn cluster htmlTop add=qdNotTag
+
 " Chain operator:  .pow {3} {2}::subtract {1}
 syn match qdChain /::/
       \ containedin=ALLBUT,markdownCode,markdownCodeBlock,qdMathBlock,qdMathInline

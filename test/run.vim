@@ -69,6 +69,28 @@ Check(GroupAt(13, 1) !=# 'qdFuncName', $'no function color inside fenced code (g
 Check(GroupAt(16, 1) ==# 'qdMathDelim', $'math delimiter colored (got {GroupAt(16, 1)})')
 Check(GroupAt(17, 1) !=# 'qdFuncName', $'math content has no function color (got {GroupAt(17, 1)})')
 
+# --- 3b. syntax: prose "<" vs htmlTag ------------------------------------
+# A "<" followed by a space in prose (e.g. "target < 0.10") must not open
+# html.vim's htmlTag region, which runs to the next ">" across lines and
+# colors whole paragraphs as Function. The runtime markdown.vim has a
+# guard (markdownValid); preservim/vim-markdown, which replaces it, does
+# not - reproduce that with the stand-in in test/fake-rtp-mkd.
+execute 'set rtp^=' .. fnameescape(getcwd() .. '/test/fake-rtp-mkd')
+var ltf = tempname() .. '.qd'
+writefile(['target < 0.10, and', 'next line |', '<b>x</b> tail', '<img src="x"> tail'], ltf)
+execute 'edit!' fnameescape(ltf)
+syntax sync fromstart
+# guard against a vacuous pass: the stand-in syntax must actually be on
+Check(GroupAt(1, 1) ==# 'mkdNonListItemBlock', $'stand-in markdown syntax active (got {GroupAt(1, 1)})')
+Check(GroupAt(1, 8) !=# 'htmlTag', $'"< 0.10" does not open a tag (got {GroupAt(1, 8)})')
+Check(GroupAt(1, 16) !~# '^html', $'"and" stays prose after "< 0.10" (got {GroupAt(1, 16)})')
+Check(GroupAt(2, 1) !~# '^html', 'no tag swallow across lines')
+Check(GroupAt(3, 1) ==# 'htmlTag', $'a real tag still colors (got {GroupAt(3, 1)})')
+Check(GroupAt(4, 15) !~# '^html', $'guard does not obscure a tag close (got {GroupAt(4, 15)})')
+bwipe!
+delete(ltf)
+execute 'set rtp-=' .. fnameescape(getcwd() .. '/test/fake-rtp-mkd')
+
 # --- 4. TOC: heading collection ----------------------------------------
 var entries = quarkdown#CollectHeadings(bufnr())
 Check(len(entries) == 5, $'5 headings collected (got {len(entries)})')
