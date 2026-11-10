@@ -1,5 +1,0 @@
-
-gbk len=16
-roundtrip == original? true   (rt len=16)
-rescued == utf8? true
-roundtrip-detect would rescue: false
